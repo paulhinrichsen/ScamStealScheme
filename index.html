@@ -427,6 +427,107 @@
   .rank-step .step-emoji { font-size: 1rem; }
 
   /* ═══════════════════════════════════════════
+     ADMIN PANEL
+     ═══════════════════════════════════════════ */
+  .admin-tab { display: none; }
+  .admin-tab.visible { display: inline-block; }
+
+  .admin-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .admin-section h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.9rem;
+    margin-bottom: 14px;
+    color: var(--accent);
+  }
+  .admin-story-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .admin-story-item:last-child { border-bottom: none; }
+  .admin-story-info { flex: 1; }
+  .admin-story-info .title { font-weight: 600; font-size: 0.88rem; }
+  .admin-story-info .meta { font-size: 0.75rem; color: var(--text-dim); margin-top: 4px; }
+  .admin-btns { display: flex; gap: 6px; flex-shrink: 0; }
+  .admin-btn {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--surface2);
+    color: var(--text);
+  }
+  .admin-btn:hover { border-color: var(--accent); }
+  .admin-btn.approve { color: var(--green); border-color: var(--green); }
+  .admin-btn.approve:hover { background: rgba(34,197,94,0.15); }
+  .admin-btn.reject { color: var(--orange); border-color: var(--orange); }
+  .admin-btn.reject:hover { background: rgba(249,115,22,0.15); }
+  .admin-btn.delete { color: #f44; border-color: #f44; }
+  .admin-btn.delete:hover { background: rgba(255,68,68,0.15); }
+  .admin-btn.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+  .admin-btn.primary:hover { opacity: 0.85; }
+
+  .owner-plot-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+  .owner-plot-form input {
+    width: 70px;
+    padding: 6px 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    text-align: center;
+  }
+  .owner-plot-form label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .admin-add-story { margin-top: 16px; }
+  .admin-add-story input, .admin-add-story textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 0.88rem;
+    margin-bottom: 10px;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+  }
+  .admin-add-story textarea { resize: vertical; min-height: 80px; }
+  .admin-add-story input:focus, .admin-add-story textarea:focus { border-color: var(--accent); }
+  .admin-msg {
+    font-size: 0.78rem;
+    font-family: 'Space Mono', monospace;
+    margin-top: 8px;
+    display: none;
+  }
+  .admin-msg.success { color: var(--green); }
+  .admin-msg.error { color: var(--orange); }
+
+  /* ═══════════════════════════════════════════
      RESPONSIVE
      ═══════════════════════════════════════════ */
   @media (max-width: 700px) {
@@ -496,6 +597,7 @@
   <button class="tab-btn" data-tab="recover">Recover Account</button>
   <button class="tab-btn" data-tab="submit">Submit a Ploy</button>
   <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
+  <button class="tab-btn admin-tab" data-tab="admin">Admin</button>
 </div>
 
 <!-- ════════════════════════════════════════════
@@ -618,6 +720,46 @@
       </div>
       <div class="lb-empty" id="lbEmpty">No votes yet. Be the first to plot a point.</div>
     </div>
+  </div>
+
+  <!-- ─── ADMIN TAB ─── -->
+  <div class="tab-page" id="page-admin">
+
+    <!-- SET OWNER PLOT -->
+    <div class="admin-section">
+      <h3>Set Owner Plot</h3>
+      <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:14px;">Set or update your official answer for each live story. Values are percentages (must add to 100).</p>
+      <div id="adminOwnerPlots"></div>
+    </div>
+
+    <!-- PENDING SUBMISSIONS -->
+    <div class="admin-section">
+      <h3>Pending Submissions</h3>
+      <div id="adminPending"><p style="color:var(--text-dim);font-size:0.85rem;">No pending submissions.</p></div>
+    </div>
+
+    <!-- MANAGE LIVE STORIES -->
+    <div class="admin-section">
+      <h3>Manage Live Stories</h3>
+      <div id="adminLiveStories"></div>
+    </div>
+
+    <!-- ADD NEW STORY -->
+    <div class="admin-section">
+      <h3>Add New Story</h3>
+      <div class="admin-add-story">
+        <input type="text" id="adminNewTitle" placeholder="Story title">
+        <textarea id="adminNewDesc" placeholder="Story description..."></textarea>
+        <div class="owner-plot-form">
+          <label>Scam%</label><input type="number" id="adminNewScam" value="33" min="0" max="100">
+          <label>Steal%</label><input type="number" id="adminNewSteal" value="33" min="0" max="100">
+          <label>Scheme%</label><input type="number" id="adminNewScheme" value="34" min="0" max="100">
+        </div>
+        <button class="admin-btn primary" onclick="adminAddStory()" style="margin-top:12px;">Add Story (Live)</button>
+        <div class="admin-msg" id="adminAddMsg"></div>
+      </div>
+    </div>
+
   </div>
 
 </div><!-- /tab-content -->
@@ -856,6 +998,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
       renderLeaderboard();
       renderRankLadder();
     }
+    if (btn.dataset.tab === 'admin') {
+      renderAdminPanel();
+    }
   });
 });
 
@@ -868,6 +1013,7 @@ function switchTab(tabName) {
   });
   if (tabName === 'plot') setTimeout(resizeCanvas, 50);
   if (tabName === 'leaderboard') { renderLeaderboard(); renderRankLadder(); }
+  if (tabName === 'admin') { renderAdminPanel(); }
 }
 
 // ═══════════════════════════════════════════════
@@ -1188,7 +1334,7 @@ async function renderLeaderboard() {
       const u = doc.data();
       const avgOwner = u.matchOwner && u.matchOwner.length ? Math.round(u.matchOwner.reduce((a,b)=>a+b,0)/u.matchOwner.length) : 0;
       const avgPublic = u.matchPublic && u.matchPublic.length ? Math.round(u.matchPublic.reduce((a,b)=>a+b,0)/u.matchPublic.length) : 0;
-      const rank = getRank(u.votes, avgOwner);
+      const rank = getRankWithAdmin(u.votes, avgOwner, u.name);
       return { id: doc.id, name: u.name, votes: u.votes, avgOwner, avgPublic, rank };
     })
     .sort((a,b) => b.rank.score - a.rank.score || b.votes - a.votes);
@@ -1224,7 +1370,7 @@ async function renderLeaderboard() {
 
 function renderRankLadder() {
   const avgOwner = userData.matchOwner && userData.matchOwner.length ? Math.round(userData.matchOwner.reduce((a,b)=>a+b,0)/userData.matchOwner.length) : 0;
-  const currentRank = getRank(userData.votes, avgOwner);
+  const currentRank = getRankWithAdmin(userData.votes, avgOwner, userData.name);
   const ladder = document.getElementById('rankLadder');
   ladder.innerHTML = '';
 
@@ -1245,7 +1391,7 @@ function escHtml(s) { const d = document.createElement('div'); d.textContent = s
 // ═══════════════════════════════════════════════
 function updateUserRankDisplay() {
   const avgOwner = userData.matchOwner && userData.matchOwner.length ? Math.round(userData.matchOwner.reduce((a,b)=>a+b,0)/userData.matchOwner.length) : 0;
-  const rank = getRank(userData.votes, avgOwner);
+  const rank = getRankWithAdmin(userData.votes, avgOwner, userData.name);
 
   document.getElementById('userRankEmoji').textContent = rank.emoji;
   document.getElementById('userRankName').textContent = rank.name;
@@ -1392,9 +1538,284 @@ async function submitStory() {
 }
 
 // ═══════════════════════════════════════════════
+// ADMIN SYSTEM
+// ═══════════════════════════════════════════════
+const ADMIN_NAME = 'The Final Boss';
+const ADMIN_RANK = { name: 'The Final Boss', emoji: '🔥', minScore: Infinity };
+let isAdmin = false;
+
+function checkAdmin() {
+  const params = new URLSearchParams(window.location.search);
+  isAdmin = params.get('admin') === 'true';
+  if (isAdmin) {
+    document.querySelector('.admin-tab').classList.add('visible');
+  }
+}
+
+// Override getRank for admin
+const _originalGetRank = getRank;
+function getRankWithAdmin(votes, avgOwnerMatch, name) {
+  if (name === ADMIN_NAME) return { ...ADMIN_RANK, score: 9999 };
+  return _originalGetRank(votes, avgOwnerMatch);
+}
+
+// ── Admin: render owner plot editors for each live story ──
+function renderAdminOwnerPlots() {
+  const container = document.getElementById('adminOwnerPlots');
+  if (!container) return;
+  container.innerHTML = '';
+
+  stories.forEach((story, idx) => {
+    const op = story.ownerPlot || { scam: 0.33, steal: 0.33, scheme: 0.34 };
+    const div = document.createElement('div');
+    div.className = 'admin-story-item';
+    div.style.flexWrap = 'wrap';
+    div.innerHTML = `
+      <div class="admin-story-info">
+        <div class="title">${escHtml(story.title)}</div>
+        <div class="meta">Current: Scam ${Math.round(op.scam*100)}% / Steal ${Math.round(op.steal*100)}% / Scheme ${Math.round(op.scheme*100)}%</div>
+      </div>
+      <div class="owner-plot-form" id="opForm-${idx}">
+        <label>Scam%</label><input type="number" id="opScam-${idx}" value="${Math.round(op.scam*100)}" min="0" max="100">
+        <label>Steal%</label><input type="number" id="opSteal-${idx}" value="${Math.round(op.steal*100)}" min="0" max="100">
+        <label>Scheme%</label><input type="number" id="opScheme-${idx}" value="${Math.round(op.scheme*100)}" min="0" max="100">
+        <button class="admin-btn primary" onclick="adminSaveOwnerPlot(${idx})">Save</button>
+        <span class="admin-msg" id="opMsg-${idx}"></span>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function adminSaveOwnerPlot(idx) {
+  const story = stories[idx];
+  const scam = parseInt(document.getElementById('opScam-' + idx).value) || 0;
+  const steal = parseInt(document.getElementById('opSteal-' + idx).value) || 0;
+  const scheme = parseInt(document.getElementById('opScheme-' + idx).value) || 0;
+  const total = scam + steal + scheme;
+
+  const msgEl = document.getElementById('opMsg-' + idx);
+  if (total !== 100) {
+    msgEl.className = 'admin-msg error'; msgEl.style.display = 'inline';
+    msgEl.textContent = 'Must add to 100 (got ' + total + ')';
+    return;
+  }
+
+  story.ownerPlot = { scam: scam/100, steal: steal/100, scheme: scheme/100 };
+
+  if (firebaseAvailable) {
+    try {
+      await db.collection('stories').doc(story.id).update({
+        official: { scam, steal, scheme }
+      });
+    } catch(e) { console.error('Failed to save owner plot:', e); }
+  }
+
+  msgEl.className = 'admin-msg success'; msgEl.style.display = 'inline';
+  msgEl.textContent = 'Saved ✓';
+  setTimeout(() => { msgEl.style.display = 'none'; }, 2000);
+
+  // Update meta text
+  const meta = msgEl.closest('.admin-story-item').querySelector('.meta');
+  meta.textContent = `Current: Scam ${scam}% / Steal ${steal}% / Scheme ${scheme}%`;
+
+  drawTriangle();
+}
+
+// ── Admin: render pending submissions ──
+async function renderAdminPending() {
+  const container = document.getElementById('adminPending');
+  if (!firebaseAvailable) {
+    container.innerHTML = '<p style="color:var(--text-dim);font-size:0.85rem;">Requires internet connection.</p>';
+    return;
+  }
+
+  try {
+    const snap = await db.collection('submissions').where('status', '==', 'pending').get();
+    if (snap.empty) {
+      container.innerHTML = '<p style="color:var(--text-dim);font-size:0.85rem;">No pending submissions.</p>';
+      return;
+    }
+
+    container.innerHTML = '';
+    snap.docs.forEach(doc => {
+      const d = doc.data();
+      const div = document.createElement('div');
+      div.className = 'admin-story-item';
+      div.innerHTML = `
+        <div class="admin-story-info">
+          <div class="title">${escHtml(d.title)}</div>
+          <div class="meta">${escHtml(d.type)} · ${escHtml(d.content ? d.content.substring(0, 120) : '')}${d.content && d.content.length > 120 ? '…' : ''}</div>
+        </div>
+        <div class="admin-btns">
+          <button class="admin-btn approve" onclick="adminApproveSubmission('${doc.id}', this)">Approve</button>
+          <button class="admin-btn reject" onclick="adminRejectSubmission('${doc.id}', this)">Reject</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  } catch(e) {
+    console.error('Failed to load pending submissions:', e);
+    container.innerHTML = '<p style="color:var(--orange);font-size:0.85rem;">Failed to load.</p>';
+  }
+}
+
+async function adminApproveSubmission(subId, btnEl) {
+  if (!firebaseAvailable) return;
+  try {
+    const subSnap = await db.collection('submissions').doc(subId).get();
+    const sub = subSnap.data();
+
+    // Create a live story from the submission
+    await db.collection('stories').add({
+      title: sub.title,
+      description: sub.content,
+      status: 'live',
+      official: { scam: 33, steal: 33, scheme: 34 },
+      source: sub.type,
+      submittedBy: sub.submittedBy,
+      ts: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Mark submission as approved
+    await db.collection('submissions').doc(subId).update({ status: 'approved' });
+
+    // Remove from DOM
+    btnEl.closest('.admin-story-item').remove();
+    const container = document.getElementById('adminPending');
+    if (!container.children.length) {
+      container.innerHTML = '<p style="color:var(--text-dim);font-size:0.85rem;">No pending submissions.</p>';
+    }
+  } catch(e) { console.error('Failed to approve:', e); }
+}
+
+async function adminRejectSubmission(subId, btnEl) {
+  if (!firebaseAvailable) return;
+  try {
+    await db.collection('submissions').doc(subId).update({ status: 'rejected' });
+    btnEl.closest('.admin-story-item').remove();
+    const container = document.getElementById('adminPending');
+    if (!container.children.length) {
+      container.innerHTML = '<p style="color:var(--text-dim);font-size:0.85rem;">No pending submissions.</p>';
+    }
+  } catch(e) { console.error('Failed to reject:', e); }
+}
+
+// ── Admin: manage live stories ──
+function renderAdminLiveStories() {
+  const container = document.getElementById('adminLiveStories');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!stories.length) {
+    container.innerHTML = '<p style="color:var(--text-dim);font-size:0.85rem;">No live stories.</p>';
+    return;
+  }
+
+  stories.forEach((story, idx) => {
+    const votes = (votesCache[story.id] || []).length;
+    const div = document.createElement('div');
+    div.className = 'admin-story-item';
+    div.innerHTML = `
+      <div class="admin-story-info">
+        <div class="title">${escHtml(story.title)}</div>
+        <div class="meta">${votes} vote${votes !== 1 ? 's' : ''} · ID: ${story.id}</div>
+      </div>
+      <div class="admin-btns">
+        <button class="admin-btn delete" onclick="adminDeleteStory('${story.id}', this)">Delete</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+async function adminDeleteStory(storyId, btnEl) {
+  if (!confirm('Delete this story? This cannot be undone.')) return;
+
+  if (firebaseAvailable) {
+    try {
+      await db.collection('stories').doc(storyId).update({ status: 'deleted' });
+    } catch(e) { console.error('Failed to delete story:', e); }
+  }
+
+  // Remove from local state
+  stories = stories.filter(s => s.id !== storyId);
+  delete votesCache[storyId];
+  currentStoryIdx = findCurrentQueueIdx();
+  loadStory();
+
+  btnEl.closest('.admin-story-item').remove();
+  renderAdminOwnerPlots();
+}
+
+// ── Admin: add new story ──
+async function adminAddStory() {
+  const title = document.getElementById('adminNewTitle').value.trim();
+  const desc = document.getElementById('adminNewDesc').value.trim();
+  const scam = parseInt(document.getElementById('adminNewScam').value) || 0;
+  const steal = parseInt(document.getElementById('adminNewSteal').value) || 0;
+  const scheme = parseInt(document.getElementById('adminNewScheme').value) || 0;
+  const msgEl = document.getElementById('adminAddMsg');
+
+  if (!title || !desc) {
+    msgEl.className = 'admin-msg error'; msgEl.style.display = 'block';
+    msgEl.textContent = 'Title and description required.';
+    return;
+  }
+  if (scam + steal + scheme !== 100) {
+    msgEl.className = 'admin-msg error'; msgEl.style.display = 'block';
+    msgEl.textContent = 'Percentages must add to 100.';
+    return;
+  }
+
+  const newStory = {
+    title, description: desc,
+    status: 'live',
+    official: { scam, steal, scheme },
+    ts: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  let newId = 'local_' + Date.now();
+  if (firebaseAvailable) {
+    try {
+      const docRef = await db.collection('stories').add(newStory);
+      newId = docRef.id;
+    } catch(e) { console.error('Failed to add story:', e); }
+  }
+
+  // Add to local state
+  const localStory = {
+    id: newId, title, desc,
+    ownerPlot: { scam: scam/100, steal: steal/100, scheme: scheme/100 }
+  };
+  stories.unshift(localStory);
+  votesCache[newId] = [];
+  currentStoryIdx = findCurrentQueueIdx();
+  loadStory();
+
+  document.getElementById('adminNewTitle').value = '';
+  document.getElementById('adminNewDesc').value = '';
+  msgEl.className = 'admin-msg success'; msgEl.style.display = 'block';
+  msgEl.textContent = 'Story added ✓';
+  setTimeout(() => { msgEl.style.display = 'none'; }, 2000);
+
+  renderAdminOwnerPlots();
+  renderAdminLiveStories();
+}
+
+// ── Admin: render full panel ──
+function renderAdminPanel() {
+  if (!isAdmin) return;
+  renderAdminOwnerPlots();
+  renderAdminPending();
+  renderAdminLiveStories();
+}
+
+// ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
 async function init() {
+  checkAdmin();
   visitorId = getOrCreateVisitorId();
   loadMyVotes();
 
