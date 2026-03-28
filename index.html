@@ -77,6 +77,13 @@
     padding: 6px 14px;
     font-family: 'Space Mono', monospace;
     font-size: 0.8rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    text-decoration: none;
+  }
+  .rank-badge:hover {
+    border-color: var(--accent);
+    background: var(--accent-dim);
   }
   .rank-emoji { font-size: 1.1rem; }
   .rank-name { color: var(--accent); }
@@ -582,6 +589,146 @@
   .admin-msg.error { color: var(--orange); }
 
   /* ═══════════════════════════════════════════
+     SUBMIT TRIANGLE
+     ═══════════════════════════════════════════ */
+  .submit-tri-section {
+    margin-top: 20px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+  .submit-tri-label {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .submit-tri-desc {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  .submit-triangle-container {
+    width: 100%;
+    height: 250px;
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .submit-triangle-canvas { width: 100%; height: 100%; cursor: crosshair; display: block; }
+  .submit-coord-display {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+    min-height: 28px;
+    align-items: center;
+  }
+  .submit-coord-hint {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* ═══════════════════════════════════════════
+     SHARE IMAGE MODAL
+     ═══════════════════════════════════════════ */
+  .share-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.94);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+  }
+  .share-modal.show { display: flex; }
+  .share-modal-inner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    max-width: 440px;
+    width: 100%;
+    text-align: center;
+  }
+  .share-modal-title {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+  }
+  .share-img-preview {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    display: block;
+    margin-bottom: 14px;
+  }
+  .share-instructions {
+    font-size: 0.76rem;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .share-btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .save-img-btn {
+    background: var(--green);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 22px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .save-img-btn:hover { opacity: 0.85; }
+  .share-close-btn {
+    background: var(--surface2);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 22px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .share-close-btn:hover { opacity: 0.85; }
+  .vote-save-img-btn {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid rgba(0,229,255,0.4);
+    border-radius: 8px;
+    padding: 9px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 12px;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .vote-save-img-btn:hover { background: var(--accent-dim); border-color: var(--accent); }
+
+  /* ═══════════════════════════════════════════
      RESPONSIVE
      ═══════════════════════════════════════════ */
   @media (max-width: 700px) {
@@ -635,7 +782,7 @@
 
 <!-- USER RANK BADGE -->
 <div class="user-rank-bar">
-  <div class="rank-badge">
+  <div class="rank-badge" onclick="switchTab('claim')" title="Claim your name">
     <span class="rank-emoji" id="userRankEmoji">🐀</span>
     <span class="rank-name" id="userRankName">Snitch</span>
     <span class="rank-username" id="userBadge">anonymous</span>
@@ -646,10 +793,10 @@
      TAB BAR
      ════════════════════════════════════════════ -->
 <div class="tab-bar">
-  <button class="tab-btn active" data-tab="plot">Plot</button>
+  <button class="tab-btn active" data-tab="submit">Submit a Ploy</button>
+  <button class="tab-btn" data-tab="plot">Plot</button>
   <button class="tab-btn" data-tab="claim">Claim Your Name</button>
   <button class="tab-btn" data-tab="recover">Recover Account</button>
-  <button class="tab-btn" data-tab="submit">Submit a Ploy</button>
   <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
   <button class="tab-btn admin-tab" data-tab="admin">Admin</button>
 </div>
@@ -660,7 +807,7 @@
 <div class="tab-content">
 
   <!-- ─── PLOT TAB ─── -->
-  <div class="tab-page active" id="page-plot">
+  <div class="tab-page" id="page-plot">
     <div class="story-card" id="storyCard">
       <h2 id="storyTitle">Loading story...</h2>
       <p class="story-desc" id="storyDesc"></p>
@@ -695,6 +842,7 @@
               <span class="result-label">Total votes</span>
               <span class="result-value" id="totalVotes">—</span>
             </div>
+            <button class="vote-save-img-btn" id="btnSaveImg" onclick="showCurrentShareImage()">📸 Save Your Plot Image</button>
           </div>
         </div>
       </div>
@@ -736,21 +884,35 @@
   </div>
 
   <!-- ─── SUBMIT A PLOY TAB ─── -->
-  <div class="tab-page" id="page-submit">
+  <div class="tab-page active" id="page-submit">
     <div class="form-page">
       <div class="form-card">
         <h2>Submit a Ploy</h2>
         <p class="form-desc">Found a scam, theft, or scheme worth plotting? Drop it here for review.</p>
         <label>Submission Type</label>
-        <select id="submitType">
+        <select id="submitType" onchange="handleSubmitTypeChange()">
           <option value="xpost">X / Twitter Post Link</option>
           <option value="url">Article URL</option>
           <option value="text">Paste / Write It</option>
         </select>
-        <label>Title</label>
-        <input type="text" id="submitTitle" placeholder="Short catchy title">
-        <label id="submitContentLabel">Link or Content</label>
-        <textarea id="submitContent" placeholder="Paste the link or tell the story..."></textarea>
+        <div id="submitTitleGroup" style="display:none;">
+          <label>Title</label>
+          <input type="text" id="submitTitle" placeholder="Short catchy title">
+        </div>
+        <label id="submitContentLabel">X / Twitter Link</label>
+        <textarea id="submitContent" placeholder="Paste the X/Twitter post URL..."></textarea>
+
+        <div class="submit-tri-section">
+          <div class="submit-tri-label">Plot Your Answer (Optional)</div>
+          <p class="submit-tri-desc">Where does this fall on the triangle? Drop a point — you'll get a saveable image to reply with on X.</p>
+          <div class="submit-triangle-container">
+            <canvas class="submit-triangle-canvas" id="submitTriCanvas"></canvas>
+          </div>
+          <div id="submitCoordDisplay" class="submit-coord-display">
+            <span class="submit-coord-hint">Tap the triangle to plot your answer</span>
+          </div>
+        </div>
+
         <button class="form-btn" onclick="submitStory()">Submit for Review</button>
         <div class="success-msg" id="submitSuccess">Ploy submitted. We'll review it.</div>
       </div>
@@ -1113,6 +1275,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (btn.dataset.tab === 'plot') {
       setTimeout(resizeCanvas, 50);
     }
+    if (btn.dataset.tab === 'submit') {
+      setTimeout(resizeSubmitCanvas, 50);
+    }
     if (btn.dataset.tab === 'leaderboard') {
       renderLeaderboard();
       renderRankLadder();
@@ -1131,6 +1296,7 @@ function switchTab(tabName) {
     p.classList.toggle('active', p.id === 'page-' + tabName);
   });
   if (tabName === 'plot') setTimeout(resizeCanvas, 50);
+  if (tabName === 'submit') setTimeout(resizeSubmitCanvas, 50);
   if (tabName === 'leaderboard') { renderLeaderboard(); renderRankLadder(); }
   if (tabName === 'admin') { renderAdminPanel(); }
 }
@@ -1356,7 +1522,10 @@ async function submitVote() {
   drawTriangle();
   updateUserRankDisplay();
 
-  // Auto-advance to next unanswered ploy after 2 seconds
+  // Show share image modal
+  showShareModal(generateShareImage(plotPoint));
+
+  // Auto-advance to next unanswered ploy after modal is closed (or after 2s if no remaining)
   const remaining = stories.filter(s => !myVotes[s.id]);
   if (remaining.length > 0) {
     setTimeout(() => {
@@ -1661,9 +1830,9 @@ async function recoverAccount() {
 // ═══════════════════════════════════════════════
 async function submitStory() {
   const type = document.getElementById('submitType').value;
-  const title = document.getElementById('submitTitle').value.trim();
+  const title = type === 'xpost' ? '' : document.getElementById('submitTitle').value.trim();
   const content = document.getElementById('submitContent').value.trim();
-  if (!title || !content) return;
+  if ((type !== 'xpost' && !title) || !content) return;
 
   if (!firebaseAvailable) {
     document.getElementById('submitSuccess').textContent = 'Submissions require an internet connection.';
@@ -1673,17 +1842,32 @@ async function submitStory() {
   }
 
   try {
-    await db.collection('submissions').add({
+    const submissionData = {
       type, title, content,
       submittedBy: visitorId,
       status: 'pending',
       ts: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    };
+    if (submitPlotPoint) {
+      submissionData.submitterPlot = submitPlotPoint;
+    }
+
+    await db.collection('submissions').add(submissionData);
 
     document.getElementById('submitTitle').value = '';
     document.getElementById('submitContent').value = '';
     document.getElementById('submitSuccess').style.display = 'block';
     setTimeout(() => { document.getElementById('submitSuccess').style.display = 'none'; }, 3000);
+
+    // Show share image if they plotted a point
+    if (submitPlotPoint) {
+      const capturedPlot = { ...submitPlotPoint };
+      showShareModal(generateShareImage(capturedPlot));
+      // Reset submit triangle
+      submitPlotPoint = null;
+      document.getElementById('submitCoordDisplay').innerHTML = '<span class="submit-coord-hint">Tap the triangle to plot your answer</span>';
+      drawSubmitTriangle();
+    }
   } catch(e) {
     console.error('Failed to submit story:', e);
   }
@@ -2057,6 +2241,251 @@ async function adminDeleteStory(storyId, btnEl) {
   renderAdminOwnerPlots();
 }
 
+// ═══════════════════════════════════════════════
+// SUBMIT FORM TYPE TOGGLE
+// ═══════════════════════════════════════════════
+function handleSubmitTypeChange() {
+  const type = document.getElementById('submitType').value;
+  const titleGroup = document.getElementById('submitTitleGroup');
+  const contentLabel = document.getElementById('submitContentLabel');
+  const contentArea = document.getElementById('submitContent');
+  if (type === 'xpost') {
+    titleGroup.style.display = 'none';
+    contentLabel.textContent = 'X / Twitter Link';
+    contentArea.placeholder = 'Paste the X/Twitter post URL...';
+  } else if (type === 'url') {
+    titleGroup.style.display = '';
+    contentLabel.textContent = 'Article URL';
+    contentArea.placeholder = 'Paste the article URL...';
+  } else {
+    titleGroup.style.display = '';
+    contentLabel.textContent = 'Story Content';
+    contentArea.placeholder = 'Tell the story...';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// SUBMIT FORM TRIANGLE
+// ═══════════════════════════════════════════════
+const submitTriCanvas = document.getElementById('submitTriCanvas');
+const submitTriCtx = submitTriCanvas.getContext('2d');
+let submitTriVerts = { scam: {x:0,y:0}, steal: {x:0,y:0}, scheme: {x:0,y:0} };
+let submitPlotPoint = null;
+
+function resizeSubmitCanvas() {
+  const rect = submitTriCanvas.parentElement.getBoundingClientRect();
+  if (!rect.width) return;
+  const dpr = window.devicePixelRatio || 1;
+  submitTriCanvas.width = rect.width * dpr;
+  submitTriCanvas.height = rect.height * dpr;
+  submitTriCanvas.style.width = rect.width + 'px';
+  submitTriCanvas.style.height = rect.height + 'px';
+  submitTriCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = rect.width, h = rect.height;
+  const pad = 50;
+  const triH = h - pad * 2;
+  const triW = Math.min(w - pad * 2, triH * 1.15);
+  const cx = w / 2;
+  submitTriVerts = {
+    scam:   { x: cx,            y: pad },
+    steal:  { x: cx - triW / 2, y: pad + triH },
+    scheme: { x: cx + triW / 2, y: pad + triH }
+  };
+  drawSubmitTriangle();
+}
+
+function baryToCartSub(scam, steal, scheme) {
+  const { scam: A, steal: B, scheme: C } = submitTriVerts;
+  return { x: scam*A.x + steal*B.x + scheme*C.x, y: scam*A.y + steal*B.y + scheme*C.y };
+}
+
+function cartToBarySub(px, py) {
+  const { scam: A, steal: B, scheme: C } = submitTriVerts;
+  const det = (B.y-C.y)*(A.x-C.x) + (C.x-B.x)*(A.y-C.y);
+  let sc = ((B.y-C.y)*(px-C.x) + (C.x-B.x)*(py-C.y)) / det;
+  let st = ((C.y-A.y)*(px-C.x) + (A.x-C.x)*(py-C.y)) / det;
+  let sk = 1 - sc - st;
+  sc = Math.max(0, Math.min(1, sc));
+  st = Math.max(0, Math.min(1, st));
+  sk = Math.max(0, Math.min(1, sk));
+  const t = sc + st + sk;
+  return { scam: sc/t, steal: st/t, scheme: sk/t };
+}
+
+function isInsideTriangleSub(px, py) {
+  const b = cartToBarySub(px, py);
+  return b.scam >= -0.02 && b.steal >= -0.02 && b.scheme >= -0.02;
+}
+
+function drawSubmitTriangle() {
+  const w = submitTriCanvas.width / (window.devicePixelRatio || 1);
+  const h = submitTriCanvas.height / (window.devicePixelRatio || 1);
+  submitTriCtx.fillStyle = '#000000';
+  submitTriCtx.fillRect(0, 0, w, h);
+  const { scam: A, steal: B, scheme: C } = submitTriVerts;
+  submitTriCtx.beginPath();
+  submitTriCtx.moveTo(A.x, A.y); submitTriCtx.lineTo(B.x, B.y); submitTriCtx.lineTo(C.x, C.y);
+  submitTriCtx.closePath();
+  submitTriCtx.strokeStyle = '#ffffff'; submitTriCtx.lineWidth = 3; submitTriCtx.stroke();
+  const triSize = Math.hypot(C.x - B.x, C.y - B.y);
+  const labelSize = Math.max(13, Math.min(22, triSize * 0.09));
+  submitTriCtx.textAlign = 'center';
+  submitTriCtx.font = `800 ${labelSize}px "Space Mono", monospace`;
+  submitTriCtx.shadowColor = '#ff5c9a'; submitTriCtx.shadowBlur = 14;
+  submitTriCtx.fillStyle = '#ff5c9a'; submitTriCtx.fillText('SCAM', A.x, A.y - 12);
+  submitTriCtx.shadowBlur = 0;
+  submitTriCtx.shadowColor = '#ffd740'; submitTriCtx.shadowBlur = 14;
+  submitTriCtx.fillStyle = '#ffd740'; submitTriCtx.fillText('STEAL', B.x, B.y + labelSize + 8);
+  submitTriCtx.shadowBlur = 0;
+  submitTriCtx.shadowColor = '#00e5ff'; submitTriCtx.shadowBlur = 14;
+  submitTriCtx.fillStyle = '#00e5ff'; submitTriCtx.fillText('SCHEME', C.x, C.y + labelSize + 8);
+  submitTriCtx.shadowBlur = 0;
+  if (submitPlotPoint) {
+    const pp = baryToCartSub(submitPlotPoint.scam, submitPlotPoint.steal, submitPlotPoint.scheme);
+    submitTriCtx.beginPath(); submitTriCtx.arc(pp.x, pp.y, 15, 0, Math.PI * 2);
+    submitTriCtx.fillStyle = 'rgba(0,229,255,0.3)'; submitTriCtx.fill();
+    submitTriCtx.beginPath(); submitTriCtx.arc(pp.x, pp.y, 9, 0, Math.PI * 2);
+    submitTriCtx.fillStyle = '#00e5ff'; submitTriCtx.fill();
+    submitTriCtx.beginPath(); submitTriCtx.arc(pp.x - 2, pp.y - 2, 3, 0, Math.PI * 2);
+    submitTriCtx.fillStyle = 'rgba(255,255,255,0.25)'; submitTriCtx.fill();
+    submitTriCtx.beginPath(); submitTriCtx.arc(pp.x, pp.y, 14, 0, Math.PI * 2);
+    submitTriCtx.strokeStyle = 'rgba(0,229,255,0.2)'; submitTriCtx.lineWidth = 1.5; submitTriCtx.stroke();
+    submitTriCtx.font = '600 9px "Space Mono", monospace'; submitTriCtx.textAlign = 'center';
+    submitTriCtx.fillStyle = '#00e5ff'; submitTriCtx.fillText('YOU', pp.x, pp.y - 18);
+  }
+}
+
+function handleSubmitCanvasClick(e) {
+  const rect = submitTriCanvas.getBoundingClientRect();
+  const px = e.clientX - rect.left, py = e.clientY - rect.top;
+  if (!isInsideTriangleSub(px, py)) return;
+  submitPlotPoint = cartToBarySub(px, py);
+  const coordDiv = document.getElementById('submitCoordDisplay');
+  coordDiv.innerHTML = `
+    <div class="coord-pill scam">SCAM ${Math.round(submitPlotPoint.scam*100)}%</div>
+    <div class="coord-pill steal">STEAL ${Math.round(submitPlotPoint.steal*100)}%</div>
+    <div class="coord-pill scheme">SCHEME ${Math.round(submitPlotPoint.scheme*100)}%</div>
+  `;
+  drawSubmitTriangle();
+}
+
+submitTriCanvas.addEventListener('click', handleSubmitCanvasClick);
+submitTriCanvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  handleSubmitCanvasClick({ clientX: t.clientX, clientY: t.clientY });
+}, { passive: false });
+
+// ═══════════════════════════════════════════════
+// SHARE IMAGE GENERATION
+// ═══════════════════════════════════════════════
+let currentShareDataUrl = null;
+
+function generateShareImage(pp) {
+  const SIZE = 1080;
+  const off = document.createElement('canvas');
+  off.width = SIZE; off.height = SIZE;
+  const octx = off.getContext('2d');
+
+  // Background
+  octx.fillStyle = '#000000';
+  octx.fillRect(0, 0, SIZE, SIZE);
+
+  // Triangle geometry (1080x1080)
+  const pad = 130;
+  const triH = SIZE - pad * 2 - 70;
+  const triW = Math.min(SIZE - pad * 2, triH * 1.15);
+  const cx = SIZE / 2;
+  const A = { x: cx,             y: pad + 20 };
+  const B = { x: cx - triW / 2,  y: pad + triH };
+  const C = { x: cx + triW / 2,  y: pad + triH };
+
+  // Triangle edges
+  octx.beginPath();
+  octx.moveTo(A.x, A.y); octx.lineTo(B.x, B.y); octx.lineTo(C.x, C.y);
+  octx.closePath();
+  octx.strokeStyle = '#ffffff'; octx.lineWidth = 5; octx.stroke();
+
+  // Corner labels
+  const lsz = 38;
+  octx.textAlign = 'center';
+  octx.font = `800 ${lsz}px "Space Mono", monospace`;
+  octx.shadowColor = '#ff5c9a'; octx.shadowBlur = 28;
+  octx.fillStyle = '#ff5c9a'; octx.fillText('SCAM', A.x, A.y - 26);
+  octx.shadowBlur = 0;
+  octx.shadowColor = '#ffd740'; octx.shadowBlur = 28;
+  octx.fillStyle = '#ffd740'; octx.fillText('STEAL', B.x, B.y + lsz + 16);
+  octx.shadowBlur = 0;
+  octx.shadowColor = '#00e5ff'; octx.shadowBlur = 28;
+  octx.fillStyle = '#00e5ff'; octx.fillText('SCHEME', C.x, C.y + lsz + 16);
+  octx.shadowBlur = 0;
+
+  // User's dot — only this, no other plots
+  const dx = pp.scam * A.x + pp.steal * B.x + pp.scheme * C.x;
+  const dy = pp.scam * A.y + pp.steal * B.y + pp.scheme * C.y;
+  // Outer glow
+  octx.beginPath(); octx.arc(dx, dy, 32, 0, Math.PI * 2);
+  octx.fillStyle = 'rgba(0,229,255,0.2)'; octx.fill();
+  // Mid glow
+  octx.beginPath(); octx.arc(dx, dy, 22, 0, Math.PI * 2);
+  octx.fillStyle = 'rgba(0,229,255,0.3)'; octx.fill();
+  // Dot
+  octx.beginPath(); octx.arc(dx, dy, 14, 0, Math.PI * 2);
+  octx.fillStyle = '#00e5ff'; octx.fill();
+  // Specular
+  octx.beginPath(); octx.arc(dx - 4, dy - 4, 5, 0, Math.PI * 2);
+  octx.fillStyle = 'rgba(255,255,255,0.3)'; octx.fill();
+  // Ring
+  octx.beginPath(); octx.arc(dx, dy, 24, 0, Math.PI * 2);
+  octx.strokeStyle = 'rgba(0,229,255,0.25)'; octx.lineWidth = 2; octx.stroke();
+  // YOU label
+  octx.font = 'bold 20px "Space Mono", monospace';
+  octx.shadowColor = '#00e5ff'; octx.shadowBlur = 10;
+  octx.fillStyle = '#00e5ff'; octx.fillText('YOU', dx, dy - 36);
+  octx.shadowBlur = 0;
+
+  // Percentage breakdown
+  const pS = Math.round(pp.scam * 100);
+  const pSt = Math.round(pp.steal * 100);
+  const pSk = Math.round(pp.scheme * 100);
+  const pctY = SIZE - 88;
+  const seg = SIZE * 0.28;
+  octx.font = '700 28px "Space Mono", monospace';
+  octx.fillStyle = '#ff5c9a'; octx.fillText(`SCAM ${pS}%`,    SIZE/2 - seg,     pctY);
+  octx.fillStyle = '#ffd740'; octx.fillText(`STEAL ${pSt}%`,  SIZE/2,            pctY);
+  octx.fillStyle = '#00e5ff'; octx.fillText(`SCHEME ${pSk}%`, SIZE/2 + seg,     pctY);
+
+  // Branding
+  octx.font = '400 21px "Space Mono", monospace';
+  octx.fillStyle = 'rgba(255,255,255,0.22)';
+  octx.fillText('scamstealscheme.com', SIZE / 2, SIZE - 44);
+
+  return off.toDataURL('image/png');
+}
+
+function showShareModal(dataUrl) {
+  currentShareDataUrl = dataUrl;
+  document.getElementById('shareImgPreview').src = dataUrl;
+  document.getElementById('shareModal').classList.add('show');
+}
+
+function closeShareModal() {
+  document.getElementById('shareModal').classList.remove('show');
+}
+
+function downloadShareImage() {
+  if (!currentShareDataUrl) return;
+  const a = document.createElement('a');
+  a.href = currentShareDataUrl;
+  a.download = 'my-scam-steal-scheme-plot.png';
+  a.click();
+}
+
+function showCurrentShareImage() {
+  if (!plotPoint) return;
+  showShareModal(generateShareImage(plotPoint));
+}
+
 // ── Admin: add new story (removed — use Submit a Ploy instead) ──
 
 // ── Admin: render full panel ──
@@ -2091,12 +2520,29 @@ async function init() {
 
   checkAdmin();
   resizeCanvas();
+  resizeSubmitCanvas();
   updateUserRankDisplay();
   loadStory();
 }
 
-window.addEventListener('resize', resizeCanvas);
+window.addEventListener('resize', () => { resizeCanvas(); resizeSubmitCanvas(); });
 init();
 </script>
+<!-- ─── SHARE IMAGE MODAL ─── -->
+<div class="share-modal" id="shareModal">
+  <div class="share-modal-inner">
+    <div class="share-modal-title">📸 Your Plot</div>
+    <img class="share-img-preview" id="shareImgPreview" src="" alt="Your plot on the triangle">
+    <p class="share-instructions">
+      <strong style="color:var(--text);">iOS:</strong> Hold the image → Save to Photos<br>
+      <strong style="color:var(--text);">Android / Desktop:</strong> Tap the download button below
+    </p>
+    <div class="share-btn-row">
+      <button class="save-img-btn" onclick="downloadShareImage()">⬇ Download</button>
+      <button class="share-close-btn" onclick="closeShareModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
