@@ -2007,16 +2007,22 @@ function adminCartToBary(px, py, verts) {
   return { scam: scam/t, steal: steal/t, scheme: scheme/t };
 }
 
+function adminStoryLabel(story) {
+  if (story.title && story.title.trim()) return story.title.trim();
+  if (story.tweetUrl) return '🐦 ' + story.tweetUrl.replace(/^https?:\/\/(www\.)?/, '').substring(0, 60);
+  if (story.desc) return story.desc.substring(0, 60);
+  return '[Untitled]';
+}
+
 function renderAdminOwnerPlots() {
   // Populate story selector
   const select = document.getElementById('adminStorySelect');
   if (!select) return;
   select.innerHTML = '';
   stories.forEach((story, idx) => {
-    const op = story.ownerPlot || { scam: 0.33, steal: 0.33, scheme: 0.34 };
     const opt = document.createElement('option');
     opt.value = idx;
-    opt.textContent = story.title + ' — Scam ' + Math.round(op.scam*100) + '% / Steal ' + Math.round(op.steal*100) + '% / Scheme ' + Math.round(op.scheme*100) + '%';
+    opt.textContent = adminStoryLabel(story);
     select.appendChild(opt);
   });
 
@@ -2093,7 +2099,7 @@ async function adminSaveOwnerPlotFromTriangle() {
 
   // Update dropdown text
   const select = document.getElementById('adminStorySelect');
-  select.options[adminSelectedStoryIdx].textContent = story.title + ' — Scam ' + scam + '% / Steal ' + steal + '% / Scheme ' + scheme + '%';
+  select.options[adminSelectedStoryIdx].textContent = adminStoryLabel(story);
 
   adminPlotPoint = null;
   drawAdminTriangle(adminCanvas, adminCtx, adminTriVerts, null, story.ownerPlot);
@@ -2203,7 +2209,7 @@ function renderAdminLiveStories() {
     div.className = 'admin-story-item';
     div.innerHTML = `
       <div class="admin-story-info">
-        <div class="title">${escHtml(story.title)}</div>
+        <div class="title">${escHtml(adminStoryLabel(story))}</div>
         <div class="meta">${votes} vote${votes !== 1 ? 's' : ''} · ID: ${story.id}</div>
       </div>
       <div class="admin-btns">
