@@ -1747,10 +1747,19 @@ function hashPhrase(phrase) {
   return 'h_' + Math.abs(h).toString(36);
 }
 
+const BLOCKED_NAMES = ['final boss', 'the final boss', 'finalboss', 'admin', 'administrator', 'moderator', 'mod', 'owner'];
+
 async function claimName() {
   const nick = document.getElementById('inputNickname').value.trim();
   const phrase = document.getElementById('inputPhrase').value.trim();
   if (!nick || !phrase) return;
+
+  // Block reserved names
+  if (BLOCKED_NAMES.includes(nick.toLowerCase().replace(/\s+/g, ' '))) {
+    document.getElementById('nameError').textContent = 'That name is reserved.';
+    document.getElementById('nameError').style.display = 'block';
+    return;
+  }
 
   if (!firebaseAvailable) {
     userData.name = nick;
@@ -2219,6 +2228,17 @@ async function renderAdminPending() {
       }
 
       const displayContent = d.content || '';
+      // Preview link: for URL-based types open in new tab, for text expand inline
+      let previewBtn = '';
+      const isLink = ['xpost', 'linkedin', 'url'].includes(d.type);
+      if (isLink && displayContent.trim()) {
+        let previewUrl = displayContent.trim();
+        if (!/^https?:\/\//i.test(previewUrl)) previewUrl = 'https://' + previewUrl;
+        previewBtn = `<a href="${escHtml(previewUrl)}" target="_blank" rel="noopener" class="admin-btn" style="font-size:0.65rem;padding:2px 8px;text-decoration:none;background:var(--cyan);color:#000;">Preview ↗</a>`;
+      } else if (displayContent.length > 200) {
+        previewBtn = `<button class="admin-btn" style="font-size:0.65rem;padding:2px 8px;background:var(--cyan);color:#000;" onclick="adminExpandPreview(this, '${doc.id}')">Read Full ▾</button>`;
+      }
+
       div.innerHTML = `
         <div class="admin-story-info">
           <div class="title">${escHtml(d.title)}${refineBadge}</div>
@@ -2226,6 +2246,7 @@ async function renderAdminPending() {
           ${d.refined === true && d.originalTitle && d.originalTitle !== d.title ? '<div class="meta" style="opacity:0.5;font-size:0.7rem;">Original title: ' + escHtml(d.originalTitle) + '</div>' : ''}
         </div>
         <div class="admin-btns">
+          ${previewBtn}
           ${toggleBtn}
           <button class="admin-btn approve" onclick="adminApproveSubmission('${doc.id}', this)">Approve</button>
           <button class="admin-btn reject" onclick="adminRejectSubmission('${doc.id}', this)">Reject</button>
@@ -2246,6 +2267,21 @@ function adminToggleOriginal(btn, docId) {
   const text = showingRefined ? preview.dataset.original : preview.dataset.refined;
   preview.textContent = text.substring(0, 200) + (text.length > 200 ? '…' : '');
   btn.textContent = showingRefined ? 'Show Refined' : 'Show Original';
+}
+
+function adminExpandPreview(btn, docId) {
+  const preview = document.querySelector(`.admin-content-preview[data-id="${docId}"]`);
+  if (!preview) return;
+  const isExpanded = btn.textContent.includes('▴');
+  if (isExpanded) {
+    const text = preview.dataset.refined || preview.dataset.original || '';
+    preview.textContent = text.substring(0, 200) + (text.length > 200 ? '…' : '');
+    btn.textContent = 'Read Full ▾';
+  } else {
+    const text = preview.dataset.refined || preview.dataset.original || '';
+    preview.textContent = text;
+    btn.textContent = 'Collapse ▴';
+  }
 }
 
 async function adminApproveSubmission(subId, btnEl) {
