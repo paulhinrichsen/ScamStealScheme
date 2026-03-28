@@ -2723,6 +2723,20 @@ async function init() {
     console.warn('Failed to load some vote data:', e);
   }
 
+  // Reconcile myVotes with Firestore: if a user voted from another
+  // device/session, localStorage won't know about it. Sync it now.
+  let votesChanged = false;
+  stories.forEach(story => {
+    if (!myVotes[story.id] && votesCache[story.id]) {
+      const alreadyVoted = votesCache[story.id].some(v => v.userId === visitorId);
+      if (alreadyVoted) {
+        myVotes[story.id] = true;
+        votesChanged = true;
+      }
+    }
+  });
+  if (votesChanged) saveMyVotes();
+
   // Start with first unanswered story (newest first)
   currentStoryIdx = findCurrentQueueIdx();
 
@@ -2941,6 +2955,9 @@ async function adminPublishStory() {
     updateUserRankDisplay();
     renderAdminLiveStories();
     renderAdminOwnerPlots();
+
+    // Return to admin tab after publishing
+    switchTab('admin');
   } catch(e) {
     console.error('Failed to publish story:', e);
     btn.disabled = false;
