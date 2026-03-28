@@ -80,14 +80,14 @@
   /* Story Card */
   .story-card {
     background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 16px; padding: 20px; margin-top: 12px;
+    border-radius: 12px; padding: 14px 16px; margin-top: 8px;
     position: relative; overflow: hidden;
   }
   .story-card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0;
     height: 2px; background: var(--gradient-accent); opacity: 0.6;
   }
-  .story-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .story-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .story-date { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
   .story-source {
     font-size: 10px; color: var(--cyan); background: var(--cyan-glow);
@@ -98,10 +98,10 @@
     background: var(--pink-glow); padding: 2px 8px; border-radius: 100px; font-weight: 600;
   }
   .story-title {
-    font-family: 'Outfit', sans-serif; font-size: 18px;
-    font-weight: 700; line-height: 1.3; margin-bottom: 8px;
+    font-family: 'Outfit', sans-serif; font-size: 15px;
+    font-weight: 700; line-height: 1.25; margin-bottom: 5px;
   }
-  .story-summary { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+  .story-summary { font-size: 12px; color: var(--text-secondary); line-height: 1.45; }
 
   /* Story nav */
   .story-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 14px; }
@@ -117,7 +117,7 @@
   .story-counter { font-size: 12px; color: var(--text-muted); font-weight: 500; letter-spacing: 1px; }
 
   /* Triangle */
-  .triangle-section { margin-top: 16px; position: relative; }
+  .triangle-section { margin-top: 10px; position: relative; }
   .triangle-prompt {
     text-align: center; font-size: 13px; color: var(--text-secondary);
     margin-bottom: 10px; transition: opacity 0.3s;
@@ -239,15 +239,16 @@
 
   /* Submit FAB */
   .submit-fab {
-    position: fixed; bottom: 20px; right: 20px;
-    background: var(--bg-card); border: 1px solid var(--border);
-    color: var(--text-secondary); font-family: 'Inter', sans-serif;
-    font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
-    padding: 8px 14px; border-radius: 100px; cursor: pointer;
-    z-index: 100; transition: all 0.2s; display: flex; align-items: center; gap: 5px;
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--gradient-accent); border: none;
+    color: white; font-family: 'Outfit', sans-serif;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 14px 22px; border-radius: 100px; cursor: pointer;
+    z-index: 100; transition: all 0.2s; display: flex; align-items: center; gap: 7px;
+    box-shadow: 0 4px 20px rgba(255,45,120,0.3), 0 4px 20px rgba(0,229,255,0.15);
   }
-  .submit-fab:hover { border-color: var(--pink); color: var(--pink); }
-  .submit-fab .fab-plus { font-size: 14px; font-weight: 700; }
+  .submit-fab:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(255,45,120,0.4), 0 6px 28px rgba(0,229,255,0.2); }
+  .submit-fab .fab-plus { font-size: 18px; font-weight: 700; }
 
   /* Submit overlay */
   .submit-overlay {
@@ -439,12 +440,13 @@
 // FIREBASE CONFIG — Replace with your values
 // ═══════════════════════════════════════════
 const FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyAEp3Dp2I6vgxwgcj7AbuQNQf90q7uWuzg",
+  authDomain: "scam-steal-scheme.firebaseapp.com",
+  projectId: "scam-steal-scheme",
+  storageBucket: "scam-steal-scheme.firebasestorage.app",
+  messagingSenderId: "308697341089",
+  appId: "1:308697341089:web:91da41498419843ba5e4e0",
+  measurementId: "G-7RX1CKXTB5"
 };
 
 // ─── Firebase Init ───
@@ -472,41 +474,7 @@ if (!visitorId) {
 }
 
 // ─── Mock Data (used when Firebase not configured) ───
-const MOCK_STORIES = [
-  {
-    id: 'mock1',
-    date: 'MAR 28, 2026',
-    source: 'AP NEWS',
-    title: 'Fake FEMA Agents Collected Donations Door-to-Door After Tornado',
-    summary: 'Two men posing as FEMA agents went door-to-door in tornado-ravaged neighborhoods collecting cash donations for "disaster relief." They wore matching polo shirts with fake ID badges and collected over $14,000 before a resident recognized one from an unrelated fraud case.',
-    official: { scam: 75, scheme: 15, steal: 10 },
-    publicAvg: { scam: 68, scheme: 20, steal: 12 },
-    publicVotes: 847,
-    status: 'live'
-  },
-  {
-    id: 'mock2',
-    date: 'MAR 28, 2026',
-    source: 'REUTERS',
-    title: 'Crypto Exchange Vanishes Overnight With $230M in Customer Funds',
-    summary: 'A mid-size cryptocurrency exchange abruptly shut down its website and social media, leaving 45,000 users unable to access their funds. The CEO\'s identity appears to have been entirely fabricated. Blockchain analysis shows funds being moved through mixers within hours of the shutdown.',
-    official: { scam: 20, scheme: 55, steal: 25 },
-    publicAvg: { scam: 30, scheme: 45, steal: 25 },
-    publicVotes: 1203,
-    status: 'live'
-  },
-  {
-    id: 'mock3',
-    date: 'MAR 28, 2026',
-    source: 'LOCAL 5',
-    title: 'Hospital Employee Diverted Painkiller Shipments for 3 Years',
-    summary: 'A pharmacy technician at a regional hospital systematically rerouted incoming painkiller shipments to a storage unit, replacing them with placebos. The operation went undetected for three years, with the stolen medications sold on the black market netting an estimated $2.1M.',
-    official: { scam: 5, scheme: 35, steal: 60 },
-    publicAvg: { scam: 10, scheme: 30, steal: 60 },
-    publicVotes: 631,
-    status: 'live'
-  }
-];
+const MOCK_STORIES = [];
 
 // ─── State ───
 let STORIES = [];
@@ -784,7 +752,8 @@ function handleCanvasInput(e) {
   if (e.touches) { cx = e.touches[0].clientX - rect.left; cy = e.touches[0].clientY - rect.top; }
   else { cx = e.clientX - rect.left; cy = e.clientY - rect.top; }
 
-  userPlacement = isInsideTriangle(cx, cy) ? { x: cx, y: cy } : clampToTriangle(cx, cy);
+  if (!isInsideTriangle(cx, cy)) return;
+  userPlacement = { x: cx, y: cy };
   document.getElementById('confirmBtn').classList.add('visible');
   document.getElementById('trianglePrompt').classList.add('hidden');
   draw();
