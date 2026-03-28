@@ -19,7 +19,7 @@
     --cyan-glow: rgba(0, 229, 255, 0.15);
     --gold: #ffd740;
     --gold-soft: #ffe082;
-    --gold-glow: rgba(255, 215, 64, 0.15);
+    --gold-glow: rgba(255, 215, 64, 0.15);h
     --purple: #b388ff;
     --text-primary: #eee8f5;
     --text-secondary: #8a839b;
@@ -347,7 +347,7 @@
         <span class="story-badge" id="storyBadge"></span>
       </div>
       <div class="story-title" id="storyTitle">Loading...</div>
-      <div class="story-summary" id="storySummary">Loading story details...</div>
+      <div class="story-summary" id="storySummary">Loading ploy details...</div>
       <div class="story-nav">
         <button class="story-nav-btn" id="prevBtn" disabled>&lsaquo;</button>
         <span class="story-counter" id="storyCounter">1 / 3</span>
@@ -404,7 +404,7 @@
 
 <!-- Submit FAB -->
 <button class="submit-fab" onclick="openSubmit()">
-  <span class="fab-plus">+</span> Submit Story
+  <span class="fab-plus">+</span> Submit Ploy
 </button>
 
 <!-- Submit Overlay -->
@@ -412,7 +412,7 @@
   <div class="submit-box">
     <button class="submit-close" onclick="closeSubmit()">&times;</button>
     <div id="submitForm">
-      <div class="submit-title">Submit a Story</div>
+      <div class="submit-title">Submit a Ploy</div>
       <div class="submit-subtitle">Share something that belongs on the triangle</div>
       <div class="submit-tabs">
         <button class="submit-tab active" onclick="switchTab('xpost', this)">X Post</button>
@@ -426,7 +426,7 @@
     </div>
     <div class="submit-success" id="submitSuccess">
       <div class="submit-success-icon">&#10003;</div>
-      <div class="submit-success-text">Story submitted!<br>It's in the queue for review.</div>
+      <div class="submit-success-text">Ploy submitted!<br>It's in the queue for review.</div>
     </div>
   </div>
 </div>
@@ -860,7 +860,7 @@ function showView(view) {
 function renderArchive() {
   const el = document.getElementById('archiveList');
   if (ALL_STORIES.length === 0) {
-    el.innerHTML = '<div class="loading-msg">No stories yet</div>';
+    el.innerHTML = '<div class="loading-msg">No ploys yet</div>';
     return;
   }
   el.innerHTML = ALL_STORIES.map((s, i) => {
@@ -1051,7 +1051,7 @@ async function loadAdminQueue() {
   }
 }
 
-// ─── Submit Story ───
+// ─── Submit Ploy ───
 let currentTab = 'xpost';
 
 function openSubmit() {
@@ -1070,7 +1070,7 @@ function switchTab(tab, el) {
   el.classList.add('active');
   const wrap = document.getElementById('submitInputWrap');
   if (tab === 'text') {
-    wrap.innerHTML = '<textarea class="submit-input" id="submitInput" rows="4" placeholder="Paste or type the story here..."></textarea>';
+    wrap.innerHTML = '<textarea class="submit-input" id="submitInput" rows="4" placeholder="Paste or type the ploy here..."></textarea>';
   } else if (tab === 'url') {
     wrap.innerHTML = '<input class="submit-input" id="submitInput" type="url" placeholder="Paste the article URL...">';
   } else {
