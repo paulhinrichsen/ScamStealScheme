@@ -728,6 +728,44 @@
   }
   .vote-save-img-btn:hover { background: var(--accent-dim); border-color: var(--accent); }
 
+  .approve-modal-inner {
+    max-width: 520px;
+    width: 100%;
+  }
+  .approve-story-preview {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    text-align: left;
+  }
+  .approve-story-preview .title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 5px;
+  }
+  .approve-story-preview .desc {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    line-height: 1.55;
+    margin: 0;
+  }
+  .approve-tri-wrap {
+    height: 240px;
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .approve-tri-wrap canvas {
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    display: block;
+  }
+
   /* ═══════════════════════════════════════════
      RESPONSIVE
      ═══════════════════════════════════════════ */
@@ -2131,29 +2169,9 @@ async function adminApproveSubmission(subId, btnEl) {
   if (!firebaseAvailable) return;
   try {
     const subSnap = await db.collection('submissions').doc(subId).get();
-    const sub = subSnap.data();
-
-    // Create a live story from the submission
-    await db.collection('stories').add({
-      title: sub.title,
-      description: sub.content,
-      status: 'live',
-      official: { scam: 33, steal: 33, scheme: 34 },
-      source: sub.type,
-      submittedBy: sub.submittedBy,
-      ts: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    // Mark submission as approved
-    await db.collection('submissions').doc(subId).update({ status: 'approved' });
-
-    // Remove from DOM
-    btnEl.closest('.admin-story-item').remove();
-    const container = document.getElementById('adminPending');
-    if (!container.children.length) {
-      container.innerHTML = '<p style="color:var(--text-dim);font-size:0.85rem;">No pending submissions.</p>';
-    }
-  } catch(e) { console.error('Failed to approve:', e); }
+    if (!subSnap.exists) return;
+    openApproveModal(subId, subSnap.data(), btnEl);
+  } catch(e) { console.error('Failed to load submission for approval:', e); }
 }
 
 async function adminRejectSubmission(subId, btnEl) {
@@ -2499,6 +2517,179 @@ async function init() {
 
 window.addEventListener('resize', () => { resizeCanvas(); resizeSubmitCanvas(); });
 init();
+
+// ═══════════════════════════════════════════════
+// ADMIN APPROVE & PLOT MODAL
+// ═══════════════════════════════════════════════
+let approveTriCanvas = null, approveTriCtx = null;
+let approveTriVerts = { scam: {x:0,y:0}, steal: {x:0,y:0}, scheme: {x:0,y:0} };
+let approvePlotPoint = null;
+let pendingApproveSubId = null;
+let pendingApproveSubData = null;
+
+function initApproveCanvas() {
+  approveTriCanvas = document.getElementById('approveTriCanvas');
+  approveTriCtx = approveTriCanvas.getContext('2d');
+  approveTriCanvas.removeEventListener('click', handleApproveCanvasClick);
+  approveTriCanvas.removeEventListener('touchend', _handleApproveTouchEnd);
+  approveTriCanvas.addEventListener('click', handleApproveCanvasClick);
+  approveTriCanvas.addEventListener('touchend', _handleApproveTouchEnd);
+}
+
+function _handleApproveTouchEnd(e) {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  handleApproveCanvasClick({ clientX: t.clientX, clientY: t.clientY });
+}
+
+function resizeApproveCanvas() {
+  if (!approveTriCanvas) return;
+  const rect = approveTriCanvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  approveTriCanvas.width = rect.width * dpr;
+  approveTriCanvas.height = rect.height * dpr;
+  approveTriCanvas.style.width = rect.width + 'px';
+  approveTriCanvas.style.height = rect.height + 'px';
+  approveTriCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const w = rect.width, h = rect.height;
+  const pad = Math.min(w, h) * 0.18;
+  approveTriVerts = {
+    scam:   { x: w / 2,   y: pad },
+    steal:  { x: pad,     y: h - pad },
+    scheme: { x: w - pad, y: h - pad }
+  };
+  drawApproveTriangle();
+}
+
+function baryToCartApp(s, st, sc) {
+  const { scam: A, steal: B, scheme: C } = approveTriVerts;
+  return { x: s*A.x + st*B.x + sc*C.x, y: s*A.y + st*B.y + sc*C.y };
+}
+
+function cartToBaryApp(px, py) {
+  const { scam: A, steal: B, scheme: C } = approveTriVerts;
+  const denom = (B.y-C.y)*(A.x-C.x)+(C.x-B.x)*(A.y-C.y);
+  const s  = ((B.y-C.y)*(px-C.x)+(C.x-B.x)*(py-C.y))/denom;
+  const st = ((C.y-A.y)*(px-C.x)+(A.x-C.x)*(py-C.y))/denom;
+  const sc = 1-s-st;
+  const total = Math.max(s,0)+Math.max(st,0)+Math.max(sc,0);
+  return { scam: Math.max(s,0)/total, steal: Math.max(st,0)/total, scheme: Math.max(sc,0)/total };
+}
+
+function drawApproveTriangle() {
+  if (!approveTriCanvas) return;
+  const w = approveTriCanvas.width / (window.devicePixelRatio || 1);
+  const h = approveTriCanvas.height / (window.devicePixelRatio || 1);
+  approveTriCtx.fillStyle = '#000000';
+  approveTriCtx.fillRect(0, 0, w, h);
+  const { scam: A, steal: B, scheme: C } = approveTriVerts;
+  approveTriCtx.beginPath();
+  approveTriCtx.moveTo(A.x, A.y); approveTriCtx.lineTo(B.x, B.y); approveTriCtx.lineTo(C.x, C.y);
+  approveTriCtx.closePath();
+  approveTriCtx.strokeStyle = '#ffffff'; approveTriCtx.lineWidth = 3; approveTriCtx.stroke();
+  const labelSize = Math.max(10, Math.min(w, h) * 0.055);
+  approveTriCtx.textAlign = 'center';
+  approveTriCtx.font = `800 ${labelSize}px "Space Mono", monospace`;
+  approveTriCtx.shadowColor = '#ff5c9a'; approveTriCtx.shadowBlur = 14;
+  approveTriCtx.fillStyle = '#ff5c9a'; approveTriCtx.fillText('SCAM', A.x, A.y - 12);
+  approveTriCtx.shadowBlur = 0;
+  approveTriCtx.shadowColor = '#ffd740'; approveTriCtx.shadowBlur = 14;
+  approveTriCtx.fillStyle = '#ffd740'; approveTriCtx.fillText('STEAL', B.x, B.y + labelSize + 8);
+  approveTriCtx.shadowBlur = 0;
+  approveTriCtx.shadowColor = '#00e5ff'; approveTriCtx.shadowBlur = 14;
+  approveTriCtx.fillStyle = '#00e5ff'; approveTriCtx.fillText('SCHEME', C.x, C.y + labelSize + 8);
+  approveTriCtx.shadowBlur = 0;
+  if (approvePlotPoint) {
+    const pp = baryToCartApp(approvePlotPoint.scam, approvePlotPoint.steal, approvePlotPoint.scheme);
+    approveTriCtx.beginPath(); approveTriCtx.arc(pp.x, pp.y, 15, 0, Math.PI*2);
+    approveTriCtx.fillStyle = 'rgba(255,93,154,0.25)'; approveTriCtx.fill();
+    approveTriCtx.beginPath(); approveTriCtx.arc(pp.x, pp.y, 9, 0, Math.PI*2);
+    approveTriCtx.fillStyle = '#ff5c9a'; approveTriCtx.fill();
+    approveTriCtx.beginPath(); approveTriCtx.arc(pp.x-2, pp.y-2, 3, 0, Math.PI*2);
+    approveTriCtx.fillStyle = 'rgba(255,255,255,0.25)'; approveTriCtx.fill();
+  }
+}
+
+function handleApproveCanvasClick(e) {
+  const rect = approveTriCanvas.getBoundingClientRect();
+  const px = e.clientX - rect.left, py = e.clientY - rect.top;
+  approvePlotPoint = cartToBaryApp(px, py);
+  document.getElementById('approveCoordDisplay').innerHTML =
+    `<div class="coord-pill scam">SCAM ${Math.round(approvePlotPoint.scam*100)}%</div>
+     <div class="coord-pill steal">STEAL ${Math.round(approvePlotPoint.steal*100)}%</div>
+     <div class="coord-pill scheme">SCHEME ${Math.round(approvePlotPoint.scheme*100)}%</div>`;
+  document.getElementById('btnPublishStory').disabled = false;
+  drawApproveTriangle();
+}
+
+function openApproveModal(subId, subData, btnEl) {
+  pendingApproveSubId = subId;
+  pendingApproveSubData = { ...subData, _btnEl: btnEl };
+  approvePlotPoint = null;
+  document.getElementById('approveStoryTitle').textContent = subData.title || subData.content?.substring(0,80) || '';
+  document.getElementById('approveStoryDesc').textContent = (subData.content || '').substring(0, 300);
+  document.getElementById('approveCoordDisplay').innerHTML = '';
+  document.getElementById('btnPublishStory').disabled = true;
+  document.getElementById('btnPublishStory').textContent = 'Publish Story';
+  document.getElementById('approveModal').classList.add('show');
+  initApproveCanvas();
+  setTimeout(resizeApproveCanvas, 50);
+}
+
+function closeApproveModal() {
+  document.getElementById('approveModal').classList.remove('show');
+  pendingApproveSubId = null;
+  pendingApproveSubData = null;
+  approvePlotPoint = null;
+}
+
+async function adminPublishStory() {
+  if (!pendingApproveSubId || !approvePlotPoint || !firebaseAvailable) return;
+  const btn = document.getElementById('btnPublishStory');
+  btn.disabled = true;
+  btn.textContent = 'Publishing…';
+  try {
+    const sub = pendingApproveSubData;
+    await db.collection('stories').add({
+      title: sub.title || sub.content?.substring(0, 80) || 'Untitled',
+      description: sub.content,
+      status: 'live',
+      official: {
+        scam:   Math.round(approvePlotPoint.scam * 100),
+        steal:  Math.round(approvePlotPoint.steal * 100),
+        scheme: Math.round(approvePlotPoint.scheme * 100)
+      },
+      source: sub.type,
+      submittedBy: sub.submittedBy || null,
+      submitterPlot: sub.submitterPlot || null,
+      ts: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('submissions').doc(pendingApproveSubId).update({ status: 'approved' });
+
+    // Remove from pending queue in DOM
+    if (sub._btnEl) {
+      const item = sub._btnEl.closest('.admin-story-item');
+      if (item) item.remove();
+      const container = document.getElementById('adminPending');
+      if (container && !container.children.length) {
+        container.innerHTML = '<p style="color:var(--text-dim);font-size:0.85rem;">No pending submissions.</p>';
+      }
+    }
+
+    closeApproveModal();
+
+    // Refresh stories so it shows on the Plot tab immediately
+    stories = await loadStories();
+    currentStoryIdx = findCurrentQueueIdx();
+    loadStory();
+    renderAdminLiveStories();
+    renderAdminOwnerPlots();
+  } catch(e) {
+    console.error('Failed to publish story:', e);
+    btn.disabled = false;
+    btn.textContent = 'Publish Story';
+  }
+}
 </script>
 <!-- ─── SHARE IMAGE MODAL ─── -->
 <div class="share-modal" id="shareModal">
@@ -2512,6 +2703,27 @@ init();
     <div class="share-btn-row">
       <button class="save-img-btn" onclick="downloadShareImage()">⬇ Download</button>
       <button class="share-close-btn" onclick="closeShareModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─── APPROVE & PLOT MODAL ─── -->
+<div class="share-modal" id="approveModal">
+  <div class="share-modal-inner approve-modal-inner">
+    <div class="share-modal-title">✅ Approve & Plot</div>
+    <div class="approve-story-preview">
+      <div class="title" id="approveStoryTitle"></div>
+      <div class="desc" id="approveStoryDesc"></div>
+    </div>
+    <div class="submit-tri-label">Plot the Final Boss Answer</div>
+    <p class="submit-tri-desc">Tap the triangle to set the official position before publishing.</p>
+    <div class="approve-tri-wrap">
+      <canvas id="approveTriCanvas"></canvas>
+    </div>
+    <div class="submit-coord-display" id="approveCoordDisplay"></div>
+    <div class="share-btn-row" style="margin-top:16px;">
+      <button class="save-img-btn" id="btnPublishStory" onclick="adminPublishStory()" disabled>Publish Story</button>
+      <button class="share-close-btn" onclick="closeApproveModal()">Cancel</button>
     </div>
   </div>
 </div>
