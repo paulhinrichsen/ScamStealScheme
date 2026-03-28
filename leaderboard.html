@@ -142,6 +142,15 @@
     font-size: 0.88rem;
     line-height: 1.55;
   }
+  .tweet-embed { margin-top: 12px; display: none; }
+  .tweet-embed.show { display: block; }
+  .tweet-embed .twitter-tweet { margin: 0 auto !important; }
+  .tweet-embed .tweet-loading {
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    font-family: 'Space Mono', monospace;
+    padding: 12px 0;
+  }
   .story-nav { display: none; }
   .story-status {
     margin-top: 12px;
@@ -630,6 +639,7 @@
     <div class="story-card" id="storyCard">
       <h2 id="storyTitle">Loading story...</h2>
       <p class="story-desc" id="storyDesc"></p>
+      <div class="tweet-embed" id="tweetEmbed"></div>
       <div class="story-nav" id="storyNav"></div>
       <div class="story-status" id="storyStatus"></div>
     </div>
@@ -809,6 +819,7 @@
 
 </div><!-- /tab-content -->
 
+<script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
@@ -936,6 +947,59 @@ function saveMyVotes() {
 }
 
 // ═══════════════════════════════════════════════
+// TWEET HELPERS
+// ═══════════════════════════════════════════════
+function extractTweetUrl(text) {
+  if (!text) return null;
+  // Match twitter.com or x.com status URLs
+  const match = text.match(/https?:\/\/(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/);
+  return match ? match[0] : null;
+}
+
+function extractTweetId(url) {
+  if (!url) return null;
+  const match = url.match(/status\/(\d+)/);
+  return match ? match[1] : null;
+}
+
+function renderTweetEmbed(tweetUrl) {
+  const embedEl = document.getElementById('tweetEmbed');
+  if (!tweetUrl) {
+    embedEl.classList.remove('show');
+    embedEl.innerHTML = '';
+    return;
+  }
+
+  embedEl.classList.add('show');
+  embedEl.innerHTML = '<p class="tweet-loading">Loading tweet...</p>';
+
+  const tweetId = extractTweetId(tweetUrl);
+  if (!tweetId) {
+    embedEl.innerHTML = '<p class="tweet-loading"><a href="' + tweetUrl + '" target="_blank" style="color:var(--accent);">View on X</a></p>';
+    return;
+  }
+
+  // Clear and create fresh container
+  embedEl.innerHTML = '';
+
+  if (typeof twttr !== 'undefined' && twttr.widgets) {
+    twttr.widgets.createTweet(tweetId, embedEl, {
+      theme: 'dark',
+      align: 'center',
+      dnt: true
+    }).then(el => {
+      if (!el) {
+        // Tweet couldn't load — show fallback link
+        embedEl.innerHTML = '<p class="tweet-loading"><a href="' + tweetUrl + '" target="_blank" style="color:var(--accent);">View tweet on X ↗</a></p>';
+      }
+    });
+  } else {
+    // widgets.js not loaded yet — retry after a short delay
+    setTimeout(() => renderTweetEmbed(tweetUrl), 1000);
+  }
+}
+
+// ═══════════════════════════════════════════════
 // FIREBASE DATA FUNCTIONS
 // ═══════════════════════════════════════════════
 async function loadStories() {
@@ -952,6 +1016,8 @@ async function loadStories() {
         id: doc.id,
         title: data.title,
         desc: data.description,
+        source: data.source || null,
+        tweetUrl: data.source === 'xpost' ? extractTweetUrl(data.description) : null,
         ownerPlot: {
           scam: (official.scam || 0) / 100,
           steal: (official.steal || 0) / 100,
@@ -1130,26 +1196,31 @@ function drawTriangle() {
 
   if (!stories.length || !stories[currentStoryIdx]) return;
   const story = stories[currentStoryIdx];
+  const hasVoted = !!myVotes[story.id];
   const storyVotes = (votesCache[story.id] || []);
-  storyVotes.forEach(v => {
-    const pos = baryToCart(v.scam, v.steal, v.scheme);
-    ctx.beginPath(); ctx.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0, 229, 255, 0.25)'; ctx.fill();
-  });
 
-  if (story.ownerPlot) {
-    const op = baryToCart(story.ownerPlot.scam, story.ownerPlot.steal, story.ownerPlot.scheme);
-    drawDot(op.x, op.y, '#ff2d78', 'rgba(255, 45, 120, 0.3)', 9);
-    ctx.font = '600 9px "Space Mono", monospace'; ctx.textAlign = 'center';
-    ctx.fillStyle = '#ff2d78'; ctx.fillText('FINAL BOSS', op.x, op.y - 18);
-  }
+  // Only show other votes, owner plot, and public average AFTER user has voted
+  if (hasVoted) {
+    storyVotes.forEach(v => {
+      const pos = baryToCart(v.scam, v.steal, v.scheme);
+      ctx.beginPath(); ctx.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0, 229, 255, 0.25)'; ctx.fill();
+    });
 
-  if (storyVotes.length > 0) {
-    const avg = getPublicAverage(story.id);
-    const ap = baryToCart(avg.scam, avg.steal, avg.scheme);
-    drawDot(ap.x, ap.y, '#ffd740', 'rgba(255, 215, 64, 0.3)', 8);
-    ctx.font = '600 9px "Space Mono", monospace'; ctx.textAlign = 'center';
-    ctx.fillStyle = '#ffd740'; ctx.fillText('PUBLIC', ap.x, ap.y + 16);
+    if (story.ownerPlot) {
+      const op = baryToCart(story.ownerPlot.scam, story.ownerPlot.steal, story.ownerPlot.scheme);
+      drawDot(op.x, op.y, '#ff2d78', 'rgba(255, 45, 120, 0.3)', 9);
+      ctx.font = '600 9px "Space Mono", monospace'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#ff2d78'; ctx.fillText('FINAL BOSS', op.x, op.y - 18);
+    }
+
+    if (storyVotes.length > 0) {
+      const avg = getPublicAverage(story.id);
+      const ap = baryToCart(avg.scam, avg.steal, avg.scheme);
+      drawDot(ap.x, ap.y, '#ffd740', 'rgba(255, 215, 64, 0.3)', 8);
+      ctx.font = '600 9px "Space Mono", monospace'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#ffd740'; ctx.fillText('PUBLIC', ap.x, ap.y + 16);
+    }
   }
 
   if (plotPoint) {
@@ -1315,7 +1386,16 @@ function renderStory() {
   if (!stories.length || !stories[currentStoryIdx]) return;
   const story = stories[currentStoryIdx];
   document.getElementById('storyTitle').textContent = story.title;
-  document.getElementById('storyDesc').textContent = story.desc;
+
+  // If it's a tweet, hide the text desc and show embed; otherwise show desc
+  if (story.tweetUrl) {
+    document.getElementById('storyDesc').style.display = 'none';
+    renderTweetEmbed(story.tweetUrl);
+  } else {
+    document.getElementById('storyDesc').style.display = '';
+    document.getElementById('storyDesc').textContent = story.desc;
+    renderTweetEmbed(null);
+  }
 
   // Status line
   const unansweredCount = stories.filter(s => !myVotes[s.id]).length;
@@ -1441,6 +1521,7 @@ function updateUserRankDisplay() {
   document.getElementById('userRankEmoji').textContent = rank.emoji;
   document.getElementById('userRankName').textContent = rank.name;
   document.getElementById('userBadge').textContent = userData.name;
+  checkAdmin();
 }
 
 function hashPhrase(phrase) {
@@ -1590,10 +1671,11 @@ const ADMIN_RANK = { name: 'The Final Boss', emoji: '🔥', minScore: Infinity }
 let isAdmin = false;
 
 function checkAdmin() {
-  const params = new URLSearchParams(window.location.search);
-  isAdmin = params.get('admin') === 'true';
+  isAdmin = userData && userData.name === ADMIN_NAME;
   if (isAdmin) {
     document.querySelector('.admin-tab').classList.add('visible');
+  } else {
+    document.querySelector('.admin-tab').classList.remove('visible');
   }
 }
 
@@ -1963,9 +2045,14 @@ async function adminAddStory() {
   const steal = Math.round(adminNewPlotPoint.steal * 100);
   const scheme = 100 - scam - steal;
 
+  // Auto-detect tweet URLs
+  const detectedTweetUrl = extractTweetUrl(desc);
+  const source = detectedTweetUrl ? 'xpost' : 'text';
+
   const newStory = {
     title, description: desc,
     status: 'live',
+    source,
     official: { scam, steal, scheme },
     ts: firebase.firestore.FieldValue.serverTimestamp()
   };
@@ -1980,6 +2067,8 @@ async function adminAddStory() {
 
   const localStory = {
     id: newId, title, desc,
+    source,
+    tweetUrl: detectedTweetUrl,
     ownerPlot: { scam: scam/100, steal: steal/100, scheme: scheme/100 }
   };
   stories.unshift(localStory);
@@ -2016,7 +2105,6 @@ function renderAdminPanel() {
 // INIT
 // ═══════════════════════════════════════════════
 async function init() {
-  checkAdmin();
   visitorId = getOrCreateVisitorId();
   loadMyVotes();
 
@@ -2035,6 +2123,7 @@ async function init() {
   // Start with first unanswered story (newest first)
   currentStoryIdx = findCurrentQueueIdx();
 
+  checkAdmin();
   resizeCanvas();
   updateUserRankDisplay();
   loadStory();
