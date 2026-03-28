@@ -711,6 +711,35 @@
     transition: opacity 0.2s;
   }
   .share-close-btn:hover { opacity: 0.85; }
+
+  /* Loading overlay */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+    z-index: 10000;
+    transition: opacity 0.4s;
+  }
+  .loading-overlay.hide { opacity: 0; pointer-events: none; }
+  .loading-spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
   .vote-save-img-btn {
     background: transparent;
     color: var(--accent);
@@ -786,6 +815,11 @@
 </style>
 </head>
 <body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Loading ploys…</div>
+</div>
 
 <!-- ════════════════════════════════════════════
      STATIC HEADER — logo + slogan
@@ -869,11 +903,11 @@
           <button class="submit-vote" id="btnVote" disabled onclick="submitVote()">Plot your point</button>
           <div class="vote-result" id="voteResult">
             <div class="result-row">
-              <span class="result-label">vs Final Boss</span>
+              <span class="result-label">vs Boss</span>
               <span class="result-value" id="ownerMatch">—</span>
             </div>
             <div class="result-row">
-              <span class="result-label">Public match</span>
+              <span class="result-label">vs Public</span>
               <span class="result-value" id="publicMatch">—</span>
             </div>
             <div class="result-row">
@@ -881,6 +915,7 @@
               <span class="result-value" id="totalVotes">—</span>
             </div>
             <button class="vote-save-img-btn" id="btnSaveImg" onclick="showCurrentShareImage()">📸 Save Your Plot Image</button>
+            <button class="vote-save-img-btn" id="btnNextPloy" style="display:none;background:var(--accent);color:#000;border-color:var(--accent);font-weight:700;" onclick="goToNextPloy()">Next Ploy →</button>
           </div>
         </div>
       </div>
@@ -1574,11 +1609,26 @@ function advanceToNextUnanswered() {
 function renderStory() {
   const storyCard = document.getElementById('storyCard');
   const anyUnanswered = stories.some(s => !myVotes[s.id]);
-  if (!stories.length || !stories[currentStoryIdx] || !anyUnanswered) {
+  const plotLayout = document.querySelector('.plot-layout');
+  if (!stories.length) {
     if (storyCard) storyCard.style.display = 'none';
+    if (plotLayout) plotLayout.style.display = 'none';
+    return;
+  }
+  if (!stories[currentStoryIdx] || !anyUnanswered) {
+    if (storyCard) {
+      storyCard.style.display = '';
+      document.getElementById('storyTitle').style.display = 'none';
+      document.getElementById('storyDesc').style.display = 'none';
+      renderTweetEmbed(null);
+      const statusEl = document.getElementById('storyStatus');
+      statusEl.innerHTML = '✅ All ploys plotted! Check the <em>Leaderboard</em> to see your rank, or <em>Submit a Ploy</em> to add more.';
+    }
+    if (plotLayout) plotLayout.style.display = 'none';
     return;
   }
   if (storyCard) storyCard.style.display = '';
+  if (plotLayout) plotLayout.style.display = '';
   const story = stories[currentStoryIdx];
   // If it's a tweet, hide title and desc, just show the embed
   if (story.tweetUrl) {
@@ -1589,7 +1639,13 @@ function renderStory() {
     document.getElementById('storyTitle').style.display = '';
     document.getElementById('storyTitle').textContent = story.title || 'LinkedIn Post';
     document.getElementById('storyDesc').style.display = '';
-    document.getElementById('storyDesc').innerHTML = '<a href="' + story.linkedinUrl + '" target="_blank" style="color:var(--accent);">View on LinkedIn ↗</a>';
+    document.getElementById('storyDesc').innerHTML = '<a href="' + escHtml(story.linkedinUrl) + '" target="_blank" style="color:var(--accent);">View on LinkedIn ↗</a>';
+    renderTweetEmbed(null);
+  } else if (story.linkUrl) {
+    document.getElementById('storyTitle').style.display = '';
+    document.getElementById('storyTitle').textContent = story.title || 'Article';
+    document.getElementById('storyDesc').style.display = '';
+    document.getElementById('storyDesc').innerHTML = '<a href="' + escHtml(story.linkUrl) + '" target="_blank" style="color:var(--accent);">Read Article ↗</a>';
     renderTweetEmbed(null);
   } else {
     document.getElementById('storyTitle').style.display = '';
@@ -1625,6 +1681,12 @@ function renderStory() {
       document.getElementById('totalVotes').textContent = (votesCache[story.id] || []).length;
       document.getElementById('voteResult').classList.add('show');
     }
+    // Show "Next Ploy" button if there are more unanswered stories
+    const nextBtn = document.getElementById('btnNextPloy');
+    if (nextBtn) {
+      const moreToPlot = stories.some(s => !myVotes[s.id]);
+      nextBtn.style.display = moreToPlot ? '' : 'none';
+    }
   } else {
     plotPoint = null;
     document.getElementById('coordScam').textContent = 'SCAM 0%';
@@ -1633,7 +1695,14 @@ function renderStory() {
     document.getElementById('btnVote').disabled = true;
     document.getElementById('btnVote').textContent = 'PLOT YOUR POINT';
     document.getElementById('voteResult').classList.remove('show');
+    const nextBtn = document.getElementById('btnNextPloy');
+    if (nextBtn) nextBtn.style.display = 'none';
   }
+}
+
+function goToNextPloy() {
+  advanceToNextUnanswered();
+  loadStory();
 }
 
 function loadStory() { renderStory(); drawTriangle(); }
@@ -2170,12 +2239,22 @@ async function adminSaveOwnerPlotFromTriangle() {
         await saveVoteToFirebase(story.id, adminPlotPoint);
         myVotes[story.id] = true;
         saveMyVotes();
+        // Update votesCache so the Plot tab sees this vote immediately
+        if (!votesCache[story.id]) votesCache[story.id] = [];
+        votesCache[story.id].push({
+          userId: visitorId,
+          scam: adminPlotPoint.scam,
+          steal: adminPlotPoint.steal,
+          scheme: adminPlotPoint.scheme,
+          ts: Date.now()
+        });
         userData.votes++;
         userData.matchOwner.push(100);
         const publicAvg = getPublicAverage(story.id);
         const publicPct = calcMatch(adminPlotPoint, publicAvg);
         userData.matchPublic.push(publicPct);
         await saveUserData();
+        updateUserRankDisplay();
       }
     } catch(e) { console.error('Failed to save owner plot:', e); }
   }
@@ -2320,10 +2399,14 @@ function renderAdminLiveStories() {
     const votes = (votesCache[story.id] || []).length;
     const div = document.createElement('div');
     div.className = 'admin-story-item';
+    const typeBadge = story.source ? `<span style="background:var(--surface2);border:1px solid var(--border);font-size:0.6rem;padding:1px 6px;border-radius:3px;margin-right:6px;font-family:'Space Mono',monospace;">${escHtml(story.source)}</span>` : '';
+    const plotStatus = story.ownerPlotSet
+      ? '<span style="color:var(--green);font-size:0.65rem;">✓ plotted</span>'
+      : '<span style="color:var(--orange);font-size:0.65rem;">⚠ needs plot</span>';
     div.innerHTML = `
       <div class="admin-story-info">
-        <div class="title">${escHtml(adminStoryLabel(story))}</div>
-        <div class="meta">${votes} vote${votes !== 1 ? 's' : ''} · ID: ${story.id}</div>
+        <div class="title">${typeBadge}${escHtml(adminStoryLabel(story))}</div>
+        <div class="meta">${votes} vote${votes !== 1 ? 's' : ''} · ${plotStatus}</div>
       </div>
       <div class="admin-btns">
         <button class="admin-btn delete" onclick="adminDeleteStory('${story.id}', this)">Delete</button>
@@ -2648,6 +2731,13 @@ async function init() {
   resizeSubmitCanvas();
   updateUserRankDisplay();
   loadStory();
+
+  // Dismiss loading overlay
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) {
+    overlay.classList.add('hide');
+    setTimeout(() => overlay.remove(), 500);
+  }
 }
 
 window.addEventListener('resize', () => { resizeCanvas(); resizeSubmitCanvas(); });
@@ -2810,6 +2900,15 @@ async function adminPublishStory() {
       await saveVoteToFirebase(newStoryId, approvePlotPoint);
       myVotes[newStoryId] = true;
       saveMyVotes();
+      // Update votesCache so the Plot tab sees this vote immediately
+      if (!votesCache[newStoryId]) votesCache[newStoryId] = [];
+      votesCache[newStoryId].push({
+        userId: visitorId,
+        scam: approvePlotPoint.scam,
+        steal: approvePlotPoint.steal,
+        scheme: approvePlotPoint.scheme,
+        ts: Date.now()
+      });
       // Update user vote count & match stats (100% match to own plot)
       userData.votes++;
       userData.matchOwner.push(100);
@@ -2833,8 +2932,13 @@ async function adminPublishStory() {
 
     // Refresh stories so it shows on the Plot tab immediately
     stories = await loadStories();
+    // Reload votes for any new stories not yet in cache
+    await Promise.all(stories.filter(s => !votesCache[s.id]).map(async s => {
+      votesCache[s.id] = await loadVotesForStory(s.id);
+    }));
     currentStoryIdx = findCurrentQueueIdx();
     loadStory();
+    updateUserRankDisplay();
     renderAdminLiveStories();
     renderAdminOwnerPlots();
   } catch(e) {
