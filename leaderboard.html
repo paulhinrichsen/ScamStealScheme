@@ -143,7 +143,7 @@
     line-height: 1.55;
   }
   .tweet-embed { margin-top: 12px; display: none; }
-  .tweet-embed.show { display: block; }
+  .tweet-embed.show { display: block; transform: scale(0.78); transform-origin: top center; margin-bottom: -60px; }
   .tweet-embed .twitter-tweet { margin: 0 auto !important; }
   .tweet-embed .tweet-loading {
     color: var(--text-dim);
@@ -332,6 +332,31 @@
   /* ═══════════════════════════════════════════
      LEADERBOARD TAB
      ═══════════════════════════════════════════ */
+  .final-boss-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 20px;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, rgba(255,92,154,0.12), rgba(255,215,64,0.10));
+    border: 1px solid rgba(255,92,154,0.25);
+    border-radius: 14px;
+    font-family: 'Space Mono', monospace;
+  }
+  .fb-emoji { font-size: 1.4rem; }
+  .fb-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #ff5c9a;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .fb-stats {
+    margin-left: auto;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
   .leaderboard-table {
     width: 100%;
     background: var(--surface);
@@ -341,7 +366,7 @@
   }
   .lb-header, .lb-row {
     display: grid;
-    grid-template-columns: 44px 1fr 90px 80px 80px 80px;
+    grid-template-columns: 44px 1fr 90px 80px 80px;
     align-items: center;
     padding: 12px 16px;
     font-size: 0.82rem;
@@ -739,13 +764,17 @@
       <div class="rank-ladder" id="rankLadder"></div>
     </div>
 
+    <div class="final-boss-banner" id="finalBossBanner">
+      <span class="fb-emoji">🔥</span>
+      <span class="fb-name">The Final Boss</span>
+      <span class="fb-stats" id="fbStats"></span>
+    </div>
     <div class="leaderboard-table" id="leaderboard">
       <div class="lb-header">
         <div>#</div>
         <div>Name</div>
         <div>Rank</div>
         <div>Votes</div>
-        <div>vs Final Boss</div>
         <div>vs Public</div>
       </div>
       <div class="lb-empty" id="lbEmpty">No votes yet. Be the first to plot a point.</div>
@@ -986,7 +1015,8 @@ function renderTweetEmbed(tweetUrl) {
     twttr.widgets.createTweet(tweetId, embedEl, {
       theme: 'dark',
       align: 'center',
-      dnt: true
+      dnt: true,
+      width: 400
     }).then(el => {
       if (!el) {
         // Tweet couldn't load — show fallback link
@@ -1391,13 +1421,14 @@ function advanceToNextUnanswered() {
 function renderStory() {
   if (!stories.length || !stories[currentStoryIdx]) return;
   const story = stories[currentStoryIdx];
-  document.getElementById('storyTitle').textContent = story.title;
-
-  // If it's a tweet, hide the text desc and show embed; otherwise show desc
+  // If it's a tweet, hide title and desc, just show the embed
   if (story.tweetUrl) {
+    document.getElementById('storyTitle').style.display = 'none';
     document.getElementById('storyDesc').style.display = 'none';
     renderTweetEmbed(story.tweetUrl);
   } else {
+    document.getElementById('storyTitle').style.display = '';
+    document.getElementById('storyTitle').textContent = story.title;
     document.getElementById('storyDesc').style.display = '';
     document.getElementById('storyDesc').textContent = story.desc;
     renderTweetEmbed(null);
@@ -1472,10 +1503,22 @@ async function renderLeaderboard() {
 
     lb.querySelectorAll('.lb-row').forEach(r => r.remove());
 
-    if (!entries.length) { emptyEl.style.display = 'block'; return; }
+    // Populate Final Boss banner
+    const boss = entries.find(e => e.name === ADMIN_NAME);
+    const fbStats = document.getElementById('fbStats');
+    if (boss) {
+      fbStats.textContent = boss.votes + ' vote' + (boss.votes === 1 ? '' : 's') + ' · vs Public ' + boss.avgPublic + '%';
+    } else {
+      fbStats.textContent = '';
+    }
+
+    // Filter out Final Boss from regular rows
+    const playerEntries = entries.filter(e => e.name !== ADMIN_NAME);
+
+    if (!playerEntries.length) { emptyEl.style.display = 'block'; return; }
     emptyEl.style.display = 'none';
 
-    entries.forEach((e, i) => {
+    playerEntries.forEach((e, i) => {
       const row = document.createElement('div');
       row.className = 'lb-row' + (e.id === visitorId ? ' you' : '');
       const rc = i===0 ? 'gold' : i===1 ? 'silver' : i===2 ? 'bronze' : '';
@@ -1488,7 +1531,6 @@ async function renderLeaderboard() {
         </div>
         <div class="lb-rank-title">${e.rank.emoji} ${e.rank.name}</div>
         <div class="lb-votes">${e.votes}</div>
-        <div class="lb-match ${matchClass(e.avgOwner)}">${e.avgOwner}%</div>
         <div class="lb-match ${matchClass(e.avgPublic)}">${e.avgPublic}%</div>
       `;
       lb.appendChild(row);
