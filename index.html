@@ -808,8 +808,8 @@
 
   <!-- ─── PLOT TAB ─── -->
   <div class="tab-page" id="page-plot">
-    <div class="story-card" id="storyCard">
-      <h2 id="storyTitle">Loading story...</h2>
+    <div class="story-card" id="storyCard" style="display:none;">
+      <h2 id="storyTitle"></h2>
       <p class="story-desc" id="storyDesc"></p>
       <div class="tweet-embed" id="tweetEmbed"></div>
       <div class="story-nav" id="storyNav"></div>
@@ -1535,7 +1535,12 @@ function advanceToNextUnanswered() {
 }
 
 function renderStory() {
-  if (!stories.length || !stories[currentStoryIdx]) return;
+  const storyCard = document.getElementById('storyCard');
+  if (!stories.length || !stories[currentStoryIdx]) {
+    if (storyCard) storyCard.style.display = 'none';
+    return;
+  }
+  if (storyCard) storyCard.style.display = '';
   const story = stories[currentStoryIdx];
   // If it's a tweet, hide title and desc, just show the embed
   if (story.tweetUrl) {
