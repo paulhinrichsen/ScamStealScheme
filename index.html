@@ -373,7 +373,7 @@
   }
   .lb-header, .lb-row {
     display: grid;
-    grid-template-columns: 44px 1fr 90px 80px 80px;
+    grid-template-columns: 44px 1fr 90px 60px 68px 68px;
     align-items: center;
     padding: 12px 16px;
     font-size: 0.82rem;
@@ -777,7 +777,7 @@
     .vote-panel { max-width: 100%; }
     .tab-btn { font-size: 0.68rem; padding: 8px 10px; }
     .lb-header, .lb-row {
-      grid-template-columns: 36px 1fr 55px 60px 60px 60px;
+      grid-template-columns: 30px 1fr 50px 42px 52px 52px;
       padding: 10px 10px;
       font-size: 0.72rem;
     }
@@ -973,6 +973,7 @@
         <div>Name</div>
         <div>Rank</div>
         <div>Votes</div>
+        <div>vs Boss</div>
         <div>vs Public</div>
       </div>
       <div class="lb-empty" id="lbEmpty">No votes yet. Be the first to plot a point.</div>
@@ -1695,6 +1696,7 @@ async function renderLeaderboard() {
         </div>
         <div class="lb-rank-title">${e.rank.emoji} ${e.rank.name}</div>
         <div class="lb-votes">${e.votes}</div>
+        <div class="lb-match ${matchClass(e.avgOwner)}">${e.avgOwner}%</div>
         <div class="lb-match ${matchClass(e.avgPublic)}">${e.avgPublic}%</div>
       `;
       lb.appendChild(row);
