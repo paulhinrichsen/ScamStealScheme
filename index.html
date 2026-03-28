@@ -1441,6 +1441,7 @@ function updateUserRankDisplay() {
   document.getElementById('userRankEmoji').textContent = rank.emoji;
   document.getElementById('userRankName').textContent = rank.name;
   document.getElementById('userBadge').textContent = userData.name;
+  checkAdmin();
 }
 
 function hashPhrase(phrase) {
@@ -1590,10 +1591,11 @@ const ADMIN_RANK = { name: 'The Final Boss', emoji: '🔥', minScore: Infinity }
 let isAdmin = false;
 
 function checkAdmin() {
-  const params = new URLSearchParams(window.location.search);
-  isAdmin = params.get('admin') === 'true';
+  isAdmin = userData && userData.name === ADMIN_NAME;
   if (isAdmin) {
     document.querySelector('.admin-tab').classList.add('visible');
+  } else {
+    document.querySelector('.admin-tab').classList.remove('visible');
   }
 }
 
@@ -2016,7 +2018,6 @@ function renderAdminPanel() {
 // INIT
 // ═══════════════════════════════════════════════
 async function init() {
-  checkAdmin();
   visitorId = getOrCreateVisitorId();
   loadMyVotes();
 
@@ -2035,6 +2036,7 @@ async function init() {
   // Start with first unanswered story (newest first)
   currentStoryIdx = findCurrentQueueIdx();
 
+  checkAdmin();
   resizeCanvas();
   updateUserRankDisplay();
   loadStory();
