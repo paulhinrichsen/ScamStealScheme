@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scam Steal Scheme</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111;
+    --surface2: #1a1a1a;
+    --border: #262626;
+    --text: #e8e8e8;
+    --text-dim: #777;
+    --accent: #00e5ff;
+    --accent-dim: rgba(0,229,255,0.15);
+    --blue: #3b8bff;
+    --yellow: #ffd43b;
+    --purple: #a855f7;
+    --green: #22c55e;
+    --orange: #f97316;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ═══════════════════════════════════════════
+     HEADER — logo + slogan (always visible)
+     ═══════════════════════════════════════════ */
+  .site-header {
+    text-align: center;
+    padding: 32px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-wrap { display: none; }
+  .slogan {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+  .slogan em {
+    color: var(--accent);
+    font-style: normal;
+    font-weight: 700;
+  }
+
+  /* ═══════════════════════════════════════════
+     USER RANK BADGE (below slogan)
+     ═══════════════════════════════════════════ */
+  .user-rank-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 20px 0;
+  }
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+  }
+  .rank-emoji { font-size: 1.1rem; }
+  .rank-name { color: var(--accent); }
+  .rank-username { color: var(--text-dim); }
+
+  /* ═══════════════════════════════════════════
+     TAB BAR
+     ═══════════════════════════════════════════ */
+  .tab-bar {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    padding: 20px 16px 0;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    padding: 10px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+  }
+  .tab-btn:hover {
+    color: var(--text);
+    background: var(--surface2);
+  }
+  .tab-btn.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  /* ═══════════════════════════════════════════
+     TAB CONTENT AREA
+     ═══════════════════════════════════════════ */
+  .tab-content {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+  .tab-page { display: none; }
+  .tab-page.active { display: block; }
+
+  /* ═══════════════════════════════════════════
+     PLOT TAB
+     ═══════════════════════════════════════════ */
+  .story-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .story-card h2 { font-size: 1.05rem; margin-bottom: 6px; }
+  .story-card .story-desc {
+    color: var(--text-dim);
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+  .story-nav { display: none; }
+  .story-status {
+    margin-top: 12px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+  .story-status em { color: var(--cyan); font-style: normal; }
+
+  .plot-layout {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  .triangle-container {
+    position: relative;
+    width: 420px;
+    height: 400px;
+    flex-shrink: 0;
+  }
+  .triangle-canvas { width: 100%; height: 100%; cursor: crosshair; }
+  .vote-panel { flex: 1; min-width: 260px; max-width: 340px; }
+
+  .your-plot {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .your-plot h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .coord-display { display: flex; gap: 10px; margin-bottom: 14px; }
+  .coord-pill {
+    flex: 1;
+    text-align: center;
+    padding: 9px 6px;
+    border-radius: 8px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  .coord-pill.scam { background: rgba(255,92,154,0.12); color: #ff5c9a; }
+  .coord-pill.steal { background: rgba(59,139,255,0.12); color: var(--blue); }
+  .coord-pill.scheme { background: rgba(255,212,59,0.12); color: var(--yellow); }
+
+  .submit-vote {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: white;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .submit-vote:hover { opacity: 0.85; }
+  .submit-vote:active { transform: scale(0.98); }
+  .submit-vote:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  .vote-result {
+    margin-top: 14px;
+    padding: 14px;
+    background: var(--surface2);
+    border-radius: 10px;
+    display: none;
+  }
+  .vote-result.show { display: block; }
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 0.82rem;
+  }
+  .result-label { color: var(--text-dim); }
+  .result-value { font-family: 'Space Mono', monospace; font-weight: 700; }
+  .match-high { color: var(--green); }
+  .match-mid { color: var(--yellow); }
+  .match-low { color: var(--orange); }
+
+  /* ═══════════════════════════════════════════
+     FORM PAGES (Claim Name, Recover, Submit)
+     ═══════════════════════════════════════════ */
+  .form-page {
+    max-width: 440px;
+    margin: 0 auto;
+  }
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+  }
+  .form-card h2 {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.05rem;
+    margin-bottom: 6px;
+  }
+  .form-card .form-desc {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    margin-bottom: 22px;
+    line-height: 1.5;
+  }
+  .form-card label {
+    display: block;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    font-family: 'Space Mono', monospace;
+  }
+  .form-card input, .form-card textarea, .form-card select {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 0.92rem;
+    margin-bottom: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  .form-card input:focus, .form-card textarea:focus { border-color: var(--accent); }
+  .form-card input::placeholder, .form-card textarea::placeholder { color: #444; }
+  .form-card textarea { resize: vertical; min-height: 100px; }
+
+  .form-btn {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: white;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: opacity 0.2s;
+    margin-top: 4px;
+  }
+  .form-btn:hover { opacity: 0.85; }
+
+  .error-msg {
+    color: var(--orange);
+    font-size: 0.78rem;
+    margin-top: -10px;
+    margin-bottom: 12px;
+    display: none;
+    font-family: 'Space Mono', monospace;
+  }
+  .success-msg {
+    color: var(--green);
+    font-size: 0.85rem;
+    text-align: center;
+    margin-top: 16px;
+    display: none;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* ═══════════════════════════════════════════
+     LEADERBOARD TAB
+     ═══════════════════════════════════════════ */
+  .leaderboard-table {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .lb-header, .lb-row {
+    display: grid;
+    grid-template-columns: 44px 1fr 90px 80px 80px 80px;
+    align-items: center;
+    padding: 12px 16px;
+    font-size: 0.82rem;
+  }
+  .lb-header {
+    background: var(--surface2);
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .lb-row {
+    border-top: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .lb-row:hover { background: var(--surface2); }
+  .lb-row.you { background: rgba(0,229,255,0.06); }
+
+  .lb-rank {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    color: var(--text-dim);
+  }
+  .lb-rank.gold { color: var(--yellow); }
+  .lb-rank.silver { color: #aaa; }
+  .lb-rank.bronze { color: #cd7f32; }
+
+  .lb-name-cell { display: flex; flex-direction: column; gap: 2px; }
+  .lb-name { font-weight: 600; font-size: 0.85rem; }
+  .lb-name .you-tag {
+    font-size: 0.6rem;
+    background: var(--accent);
+    color: white;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .lb-rank-title {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+  }
+  .lb-votes, .lb-match {
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+  }
+  .lb-match { font-weight: 700; }
+  .lb-empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-dim);
+    font-size: 0.88rem;
+  }
+
+  /* ═══════════════════════════════════════════
+     RANK PROGRESS (shown on leaderboard)
+     ═══════════════════════════════════════════ */
+  .rank-progress-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+  .rank-progress-card h3 {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    margin-bottom: 14px;
+  }
+  .rank-ladder {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .rank-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-family: 'Space Mono', monospace;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    opacity: 0.5;
+  }
+  .rank-step.achieved { opacity: 1; border-color: var(--accent); color: var(--text); }
+  .rank-step.current { opacity: 1; border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+  .rank-step .step-emoji { font-size: 1rem; }
+
+  /* ═══════════════════════════════════════════
+     RESPONSIVE
+     ═══════════════════════════════════════════ */
+  @media (max-width: 700px) {
+    .logo-wrap { width: 100px; height: 100px; }
+    .slogan { font-size: 0.8rem; }
+    .triangle-container { width: 100%; height: 300px; }
+    .plot-layout { flex-direction: column; align-items: center; }
+    .vote-panel { max-width: 100%; }
+    .tab-btn { font-size: 0.68rem; padding: 8px 10px; }
+    .lb-header, .lb-row {
+      grid-template-columns: 36px 1fr 55px 60px 60px 60px;
+      padding: 10px 10px;
+      font-size: 0.72rem;
+    }
+    .lb-header { font-size: 0.58rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     STATIC HEADER — logo + slogan
+     ════════════════════════════════════════════ -->
+<div class="site-header">
+  <div class="logo-wrap">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+      <rect width="500" height="500" fill="#0d0d0d"/>
+      <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+        <circle cx="10" cy="10" r="0.8" fill="#ffffff" opacity="0.08"/>
+      </pattern>
+      <rect width="500" height="500" fill="url(#dots)"/>
+      <polygon points="250,72 440,378 60,378" fill="none" stroke="#00e5ff" stroke-width="1.5" stroke-opacity="0.15"/>
+      <polygon points="250,72 440,378 60,378" fill="none" stroke="#00e5ff" stroke-width="3" stroke-opacity="0.08"/>
+      <polygon points="250,80 432,370 68,370" fill="none" stroke="#00e5ff" stroke-width="2.2" stroke-opacity="0.9"/>
+      <polygon points="250,80 432,370 68,370" fill="#00e5ff" fill-opacity="0.04"/>
+      <circle cx="250" cy="243" r="3.5" fill="#00e5ff" opacity="0.5"/>
+      <circle cx="250" cy="80" r="5" fill="#00e5ff" opacity="0.9"/>
+      <circle cx="432" cy="370" r="5" fill="#00e5ff" opacity="0.9"/>
+      <circle cx="68" cy="370" r="5" fill="#00e5ff" opacity="0.9"/>
+      <text x="250" y="55" text-anchor="middle" font-family="'Courier New', Courier, monospace" font-size="22" font-weight="700" letter-spacing="6" fill="#00e5ff">SCAM</text>
+      <text x="462" y="400" text-anchor="middle" font-family="'Courier New', Courier, monospace" font-size="22" font-weight="700" letter-spacing="6" fill="#00e5ff">STEAL</text>
+      <text x="38" y="400" text-anchor="middle" font-family="'Courier New', Courier, monospace" font-size="22" font-weight="700" letter-spacing="6" fill="#00e5ff">SCHEME</text>
+      <line x1="250" y1="243" x2="250" y2="82" stroke="#00e5ff" stroke-width="0.6" stroke-dasharray="3 4" opacity="0.3"/>
+      <line x1="250" y1="243" x2="430" y2="368" stroke="#00e5ff" stroke-width="0.6" stroke-dasharray="3 4" opacity="0.3"/>
+      <line x1="250" y1="243" x2="70" y2="368" stroke="#00e5ff" stroke-width="0.6" stroke-dasharray="3 4" opacity="0.3"/>
+      <rect x="2" y="2" width="496" height="496" fill="none" stroke="#00e5ff" stroke-width="1" stroke-opacity="0.15"/>
+    </svg>
+  </div>
+  <p class="slogan">Plot your <em>ploy</em> on the Scam Steal Scheme triangle.</p>
+</div>
+
+<!-- USER RANK BADGE -->
+<div class="user-rank-bar">
+  <div class="rank-badge">
+    <span class="rank-emoji" id="userRankEmoji">🐀</span>
+    <span class="rank-name" id="userRankName">Snitch</span>
+    <span class="rank-username" id="userBadge">anonymous</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TAB BAR
+     ════════════════════════════════════════════ -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="plot">Plot</button>
+  <button class="tab-btn" data-tab="claim">Claim Your Name</button>
+  <button class="tab-btn" data-tab="recover">Recover Account</button>
+  <button class="tab-btn" data-tab="submit">Submit a Ploy</button>
+  <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
+</div>
+
+<!-- ════════════════════════════════════════════
+     TAB CONTENT
+     ════════════════════════════════════════════ -->
+<div class="tab-content">
+
+  <!-- ─── PLOT TAB ─── -->
+  <div class="tab-page active" id="page-plot">
+    <div class="story-card" id="storyCard">
+      <h2 id="storyTitle">Loading story...</h2>
+      <p class="story-desc" id="storyDesc"></p>
+      <div class="story-nav" id="storyNav"></div>
+      <div class="story-status" id="storyStatus"></div>
+    </div>
+
+    <div class="plot-layout">
+      <div class="triangle-container">
+        <canvas class="triangle-canvas" id="triangleCanvas"></canvas>
+      </div>
+      <div class="vote-panel">
+        <div class="your-plot">
+          <h3>Your Plot</h3>
+          <div class="coord-display">
+            <div class="coord-pill scam" id="coordScam">SCAM 0%</div>
+            <div class="coord-pill steal" id="coordSteal">STEAL 0%</div>
+            <div class="coord-pill scheme" id="coordScheme">SCHEME 0%</div>
+          </div>
+          <button class="submit-vote" id="btnVote" disabled onclick="submitVote()">Plot your point</button>
+          <div class="vote-result" id="voteResult">
+            <div class="result-row">
+              <span class="result-label">Owner match</span>
+              <span class="result-value" id="ownerMatch">—</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Public match</span>
+              <span class="result-value" id="publicMatch">—</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Total votes</span>
+              <span class="result-value" id="totalVotes">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── CLAIM YOUR NAME TAB ─── -->
+  <div class="tab-page" id="page-claim">
+    <div class="form-page">
+      <div class="form-card">
+        <h2>Claim Your Name</h2>
+        <p class="form-desc">Pick a nickname for the leaderboard and a secret phrase to recover your account later. Don't forget the phrase — it's the only way back in.</p>
+        <label>Nickname</label>
+        <input type="text" id="inputNickname" placeholder="e.g. fraud_daddy_69" maxlength="24">
+        <div class="error-msg" id="nameError">Nickname already taken</div>
+        <label>Secret Phrase</label>
+        <input type="text" id="inputPhrase" placeholder="something only you'd say">
+        <button class="form-btn" onclick="claimName()">Lock it in</button>
+        <div class="success-msg" id="claimSuccess">Name claimed. You're on the board.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── RECOVER ACCOUNT TAB ─── -->
+  <div class="tab-page" id="page-recover">
+    <div class="form-page">
+      <div class="form-card">
+        <h2>Recover Account</h2>
+        <p class="form-desc">Enter your nickname and secret phrase to get your stats back on this device.</p>
+        <label>Nickname</label>
+        <input type="text" id="recoverNickname" placeholder="your nickname">
+        <label>Secret Phrase</label>
+        <input type="text" id="recoverPhrase" placeholder="your secret phrase">
+        <div class="error-msg" id="recoverError">Nickname or phrase doesn't match</div>
+        <button class="form-btn" onclick="recoverAccount()">Recover</button>
+        <div class="success-msg" id="recoverSuccess">Welcome back. Stats restored.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SUBMIT A PLOY TAB ─── -->
+  <div class="tab-page" id="page-submit">
+    <div class="form-page">
+      <div class="form-card">
+        <h2>Submit a Ploy</h2>
+        <p class="form-desc">Found a scam, theft, or scheme worth plotting? Drop it here for review.</p>
+        <label>Submission Type</label>
+        <select id="submitType">
+          <option value="xpost">X / Twitter Post Link</option>
+          <option value="url">Article URL</option>
+          <option value="text">Paste / Write It</option>
+        </select>
+        <label>Title</label>
+        <input type="text" id="submitTitle" placeholder="Short catchy title">
+        <label id="submitContentLabel">Link or Content</label>
+        <textarea id="submitContent" placeholder="Paste the link or tell the story..."></textarea>
+        <button class="form-btn" onclick="submitStory()">Submit for Review</button>
+        <div class="success-msg" id="submitSuccess">Ploy submitted. We'll review it.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── LEADERBOARD TAB ─── -->
+  <div class="tab-page" id="page-leaderboard">
+    <div class="rank-progress-card">
+      <h3>Your Rank Progress</h3>
+      <div class="rank-ladder" id="rankLadder"></div>
+    </div>
+
+    <div class="leaderboard-table" id="leaderboard">
+      <div class="lb-header">
+        <div>#</div>
+        <div>Name</div>
+        <div>Rank</div>
+        <div>Votes</div>
+        <div>vs Owner</div>
+        <div>vs Public</div>
+      </div>
+      <div class="lb-empty" id="lbEmpty">No votes yet. Be the first to plot a point.</div>
+    </div>
+  </div>
+
+</div><!-- /tab-content -->
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+// ═══════════════════════════════════════════════
+// FIREBASE CONFIG (graceful fallback if CDN fails)
+// ═══════════════════════════════════════════════
+let db = null;
+let firebaseAvailable = false;
+
+try {
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp({
+      apiKey: "AIzaSyAEp3Dp2I6vgxwgcj7AbuQNQf90q7uWuzg",
+      authDomain: "scam-steal-scheme.firebaseapp.com",
+      projectId: "scam-steal-scheme",
+      storageBucket: "scam-steal-scheme.firebasestorage.app",
+      messagingSenderId: "308697341089",
+      appId: "1:308697341089:web:91da41498419843ba5e4e0",
+      measurementId: "G-7RX1CKXTB5"
+    });
+    db = firebase.firestore();
+    firebaseAvailable = true;
+    console.log('Firebase connected');
+  } else {
+    console.warn('Firebase SDK not loaded — running in offline mode');
+  }
+} catch(e) {
+  console.warn('Firebase init failed — running in offline mode:', e);
+}
+
+// ═══════════════════════════════════════════════
+// RANKS — 8 tiers, lowest to highest
+// Score = (votes * 2) + avgOwnerMatch
+// ═══════════════════════════════════════════════
+const RANKS = [
+  { name: 'Runescape Scammer',     emoji: '⚔️', minScore: 0   },
+  { name: 'Shitcoin Shiller',      emoji: '🪙', minScore: 8   },
+  { name: 'Snitch',                emoji: '🐀', minScore: 15  },
+  { name: 'Pickpocket',            emoji: '🤏', minScore: 35  },
+  { name: 'Con Artist',            emoji: '🎭', minScore: 60  },
+  { name: 'Fraudster',             emoji: '💳', minScore: 95  },
+  { name: 'Embezzler',             emoji: '🧳', minScore: 140 },
+  { name: 'Cartel Accountant',     emoji: '🧮', minScore: 200 },
+  { name: 'Criminal Mastermind',   emoji: '🧠', minScore: 280 },
+  { name: 'Ponzi Supreme',         emoji: '👑', minScore: 380 },
+];
+
+function getRank(votes, avgOwnerMatch) {
+  const score = (votes * 2) + (avgOwnerMatch || 0);
+  let rank = RANKS[0];
+  for (let i = RANKS.length - 1; i >= 0; i--) {
+    if (score >= RANKS[i].minScore) { rank = RANKS[i]; break; }
+  }
+  return { ...rank, score };
+}
+
+// ═══════════════════════════════════════════════
+// FALLBACK STORIES
+// ═══════════════════════════════════════════════
+const FALLBACK_STORIES = [
+  {
+    id: 'madoff',
+    title: 'Bernie Madoff\'s Ponzi Scheme',
+    desc: '$65 billion Ponzi scheme that ran for decades. Investors thought they were getting steady returns. They were getting paid with other people\'s money.',
+    ownerPlot: { scam: 0.45, steal: 0.30, scheme: 0.25 }
+  },
+  {
+    id: 'fyre',
+    title: 'Fyre Festival',
+    desc: 'Billy McFarland sold luxury festival tickets backed by influencer hype. Attendees arrived to disaster relief tents and cheese sandwiches.',
+    ownerPlot: { scam: 0.55, steal: 0.15, scheme: 0.30 }
+  },
+  {
+    id: 'enron',
+    title: 'Enron',
+    desc: 'Executives used off-the-books shell companies to hide billions in debt while cashing out stock. Employees lost their retirement savings.',
+    ownerPlot: { scam: 0.20, steal: 0.40, scheme: 0.40 }
+  },
+  {
+    id: 'anna-delvey',
+    title: 'Anna Delvey / Sorokin',
+    desc: 'Posed as a German heiress to scam hotels, banks, and friends out of hundreds of thousands. Vibes-based credit score.',
+    ownerPlot: { scam: 0.50, steal: 0.10, scheme: 0.40 }
+  },
+  {
+    id: 'ftx',
+    title: 'FTX / Sam Bankman-Fried',
+    desc: 'Crypto exchange funneled billions in customer deposits to his hedge fund Alameda Research. Slept on a beanbag while doing it.',
+    ownerPlot: { scam: 0.25, steal: 0.50, scheme: 0.25 }
+  }
+];
+
+// ═══════════════════════════════════════════════
+// GLOBAL STATE
+// ═══════════════════════════════════════════════
+let visitorId = null;
+let userData = null;
+let stories = [];
+let votesCache = {};
+let myVotes = {};
+let currentStoryIdx = 0;
+let plotPoint = null;
+
+// ═══════════════════════════════════════════════
+// VISITOR ID & LOCAL STORAGE
+// ═══════════════════════════════════════════════
+function getOrCreateVisitorId() {
+  let id = localStorage.getItem('sss_visitor_id');
+  if (!id) {
+    id = 'u_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('sss_visitor_id', id);
+  }
+  return id;
+}
+
+function loadMyVotes() {
+  try {
+    const raw = localStorage.getItem('sss_my_votes');
+    if (raw) myVotes = JSON.parse(raw);
+  } catch(e) {}
+}
+
+function saveMyVotes() {
+  localStorage.setItem('sss_my_votes', JSON.stringify(myVotes));
+}
+
+// ═══════════════════════════════════════════════
+// FIREBASE DATA FUNCTIONS
+// ═══════════════════════════════════════════════
+async function loadStories() {
+  if (!firebaseAvailable) return FALLBACK_STORIES;
+  try {
+    const snap = await db.collection('stories')
+      .where('status', '==', 'live')
+      .get();
+
+    const firebaseStories = snap.docs.map(doc => {
+      const data = doc.data();
+      const official = data.official || {};
+      return {
+        id: doc.id,
+        title: data.title,
+        desc: data.description,
+        ownerPlot: {
+          scam: (official.scam || 0) / 100,
+          steal: (official.steal || 0) / 100,
+          scheme: (official.scheme || 0) / 100
+        }
+      };
+    });
+
+    return firebaseStories.length > 0 ? firebaseStories : FALLBACK_STORIES;
+  } catch(e) {
+    console.warn('Failed to load stories from Firestore, using fallback:', e);
+    return FALLBACK_STORIES;
+  }
+}
+
+async function loadUserData() {
+  if (!firebaseAvailable) return { name: 'anonymous', phraseHash: null, votes: 0, matchOwner: [], matchPublic: [] };
+  try {
+    const snap = await db.collection('users').doc(visitorId).get();
+    if (snap.exists) {
+      return snap.data();
+    } else {
+      return { name: 'anonymous', phraseHash: null, votes: 0, matchOwner: [], matchPublic: [] };
+    }
+  } catch(e) {
+    console.warn('Failed to load user data:', e);
+    return { name: 'anonymous', phraseHash: null, votes: 0, matchOwner: [], matchPublic: [] };
+  }
+}
+
+async function saveUserData() {
+  if (!firebaseAvailable) return;
+  try {
+    await db.collection('users').doc(visitorId).set(userData, { merge: true });
+  } catch(e) {
+    console.error('Failed to save user data:', e);
+  }
+}
+
+async function loadVotesForStory(storyId) {
+  if (!firebaseAvailable) return [];
+  try {
+    const snap = await db.collection('stories').doc(storyId).collection('votes').get();
+    const votes = snap.docs.map(doc => {
+      const data = doc.data();
+      return {
+        userId: doc.id,
+        scam: data.scam / 100,
+        steal: data.steal / 100,
+        scheme: data.scheme / 100,
+        ts: data.ts
+      };
+    });
+    return votes;
+  } catch(e) {
+    console.warn(`Failed to load votes for story ${storyId}:`, e);
+    return [];
+  }
+}
+
+async function saveVoteToFirebase(storyId, baryCoords) {
+  if (!firebaseAvailable) return;
+  try {
+    await db.collection('stories').doc(storyId).collection('votes').doc(visitorId).set({
+      scam: Math.round(baryCoords.scam * 100),
+      steal: Math.round(baryCoords.steal * 100),
+      scheme: Math.round(baryCoords.scheme * 100),
+      ts: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) {
+    console.error('Failed to save vote to Firebase:', e);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// TAB NAVIGATION
+// ═══════════════════════════════════════════════
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('page-' + btn.dataset.tab).classList.add('active');
+
+    if (btn.dataset.tab === 'plot') {
+      setTimeout(resizeCanvas, 50);
+    }
+    if (btn.dataset.tab === 'leaderboard') {
+      renderLeaderboard();
+      renderRankLadder();
+    }
+  });
+});
+
+function switchTab(tabName) {
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tabName);
+  });
+  document.querySelectorAll('.tab-page').forEach(p => {
+    p.classList.toggle('active', p.id === 'page-' + tabName);
+  });
+  if (tabName === 'plot') setTimeout(resizeCanvas, 50);
+  if (tabName === 'leaderboard') { renderLeaderboard(); renderRankLadder(); }
+}
+
+// ═══════════════════════════════════════════════
+// TRIANGLE RENDERING
+// ═══════════════════════════════════════════════
+const canvas = document.getElementById('triangleCanvas');
+const ctx = canvas.getContext('2d');
+let triVerts = { scam: {x:0,y:0}, steal: {x:0,y:0}, scheme: {x:0,y:0} };
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function drawDot(x, y, color, glow, r) {
+  ctx.beginPath(); ctx.arc(x, y, r + 6, 0, Math.PI * 2); ctx.fillStyle = glow; ctx.fill();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+  ctx.beginPath(); ctx.arc(x - r * 0.2, y - r * 0.2, r * 0.35, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fill();
+}
+
+function resizeCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const w = rect.width, h = rect.height;
+  const pad = 60;
+  const triH = h - pad * 2;
+  const triW = Math.min(w - pad * 2, triH * 1.15);
+  const cx = w / 2;
+
+  triVerts = {
+    scam:   { x: cx,            y: pad },
+    steal:  { x: cx - triW / 2, y: pad + triH },
+    scheme: { x: cx + triW / 2, y: pad + triH }
+  };
+  drawTriangle();
+}
+
+function drawTriangle() {
+  const w = canvas.width / (window.devicePixelRatio || 1);
+  const h = canvas.height / (window.devicePixelRatio || 1);
+  ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, w, h);
+
+  const { scam: A, steal: B, scheme: C } = triVerts;
+
+  ctx.beginPath();
+  ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath();
+  const grad = ctx.createLinearGradient(A.x, A.y, B.x, B.y);
+  grad.addColorStop(0, 'rgba(0, 229, 255, 0.04)');
+  grad.addColorStop(0.5, 'rgba(255, 45, 120, 0.04)');
+  grad.addColorStop(1, 'rgba(255, 215, 64, 0.04)');
+  ctx.fillStyle = grad; ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+
+  const triSize = Math.hypot(C.x - B.x, C.y - B.y);
+  const labelSize = Math.max(14, Math.min(24, triSize * 0.08));
+  ctx.font = `800 ${labelSize}px "Space Mono", monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ff5c9a'; ctx.fillText('SCAM', A.x, A.y - 14);
+  ctx.fillStyle = '#ffd740'; ctx.fillText('STEAL', B.x, B.y + labelSize + 8);
+  ctx.fillStyle = '#00e5ff'; ctx.fillText('SCHEME', C.x, C.y + labelSize + 8);
+
+  if (!stories.length || !stories[currentStoryIdx]) return;
+  const story = stories[currentStoryIdx];
+  const storyVotes = (votesCache[story.id] || []);
+  storyVotes.forEach(v => {
+    const pos = baryToCart(v.scam, v.steal, v.scheme);
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0, 229, 255, 0.25)'; ctx.fill();
+  });
+
+  if (story.ownerPlot) {
+    const op = baryToCart(story.ownerPlot.scam, story.ownerPlot.steal, story.ownerPlot.scheme);
+    drawDot(op.x, op.y, '#ff2d78', 'rgba(255, 45, 120, 0.3)', 9);
+    ctx.font = '600 9px "Space Mono", monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#ff2d78'; ctx.fillText('OWNER', op.x, op.y - 18);
+  }
+
+  if (storyVotes.length > 0) {
+    const avg = getPublicAverage(story.id);
+    const ap = baryToCart(avg.scam, avg.steal, avg.scheme);
+    drawDot(ap.x, ap.y, '#ffd740', 'rgba(255, 215, 64, 0.3)', 8);
+    ctx.font = '600 9px "Space Mono", monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#ffd740'; ctx.fillText('PUBLIC', ap.x, ap.y + 16);
+  }
+
+  if (plotPoint) {
+    const pp = baryToCart(plotPoint.scam, plotPoint.steal, plotPoint.scheme);
+    drawDot(pp.x, pp.y, '#00e5ff', 'rgba(0, 229, 255, 0.35)', 9);
+    ctx.beginPath(); ctx.arc(pp.x, pp.y, 14, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.2)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.font = '600 9px "Space Mono", monospace'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#00e5ff'; ctx.fillText('YOU', pp.x, pp.y - 18);
+  }
+}
+
+function baryToCart(scam, steal, scheme) {
+  const { scam: A, steal: B, scheme: C } = triVerts;
+  return { x: scam*A.x + steal*B.x + scheme*C.x, y: scam*A.y + steal*B.y + scheme*C.y };
+}
+
+function cartToBary(px, py) {
+  const { scam: A, steal: B, scheme: C } = triVerts;
+  const det = (B.y-C.y)*(A.x-C.x) + (C.x-B.x)*(A.y-C.y);
+  let scam = ((B.y-C.y)*(px-C.x) + (C.x-B.x)*(py-C.y)) / det;
+  let steal = ((C.y-A.y)*(px-C.x) + (A.x-C.x)*(py-C.y)) / det;
+  let scheme = 1 - scam - steal;
+  scam = Math.max(0, Math.min(1, scam));
+  steal = Math.max(0, Math.min(1, steal));
+  scheme = Math.max(0, Math.min(1, scheme));
+  const t = scam + steal + scheme;
+  return { scam: scam/t, steal: steal/t, scheme: scheme/t };
+}
+
+function isInsideTriangle(px, py) {
+  const b = cartToBary(px, py);
+  return b.scam >= -0.02 && b.steal >= -0.02 && b.scheme >= -0.02;
+}
+
+// ═══════════════════════════════════════════════
+// TRIANGLE INTERACTION
+// ═══════════════════════════════════════════════
+function handleCanvasClick(e) {
+  if (!stories.length || !stories[currentStoryIdx]) return;
+  const story = stories[currentStoryIdx];
+  if (myVotes[story.id]) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const px = e.clientX - rect.left, py = e.clientY - rect.top;
+  if (!isInsideTriangle(px, py)) return;
+
+  plotPoint = cartToBary(px, py);
+  updateCoordDisplay();
+  document.getElementById('btnVote').disabled = false;
+  drawTriangle();
+}
+
+canvas.addEventListener('click', handleCanvasClick);
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  handleCanvasClick({ clientX: t.clientX, clientY: t.clientY });
+});
+
+function updateCoordDisplay() {
+  if (!plotPoint) return;
+  document.getElementById('coordScam').textContent = 'SCAM ' + Math.round(plotPoint.scam*100) + '%';
+  document.getElementById('coordSteal').textContent = 'STEAL ' + Math.round(plotPoint.steal*100) + '%';
+  document.getElementById('coordScheme').textContent = 'SCHEME ' + Math.round(plotPoint.scheme*100) + '%';
+}
+
+// ═══════════════════════════════════════════════
+// VOTING
+// ═══════════════════════════════════════════════
+function getPublicAverage(storyId) {
+  const votes = votesCache[storyId] || [];
+  if (!votes.length) return { scam: 0.33, steal: 0.33, scheme: 0.34 };
+  const sum = votes.reduce((a,v) => ({ scam: a.scam+v.scam, steal: a.steal+v.steal, scheme: a.scheme+v.scheme }), { scam:0, steal:0, scheme:0 });
+  return { scam: sum.scam/votes.length, steal: sum.steal/votes.length, scheme: sum.scheme/votes.length };
+}
+
+function calcMatch(a, b) {
+  const dist = Math.sqrt((a.scam-b.scam)**2 + (a.steal-b.steal)**2 + (a.scheme-b.scheme)**2);
+  return Math.max(0, Math.round((1 - dist/1.414) * 100));
+}
+
+function matchClass(pct) {
+  if (pct >= 75) return 'match-high';
+  if (pct >= 45) return 'match-mid';
+  return 'match-low';
+}
+
+async function submitVote() {
+  if (!plotPoint) return;
+  const story = stories[currentStoryIdx];
+
+  if (!votesCache[story.id]) votesCache[story.id] = [];
+  votesCache[story.id].push({ userId: visitorId, scam: plotPoint.scam, steal: plotPoint.steal, scheme: plotPoint.scheme, ts: Date.now() });
+
+  myVotes[story.id] = true;
+  saveMyVotes();
+
+  userData.votes++;
+  const ownerPct = calcMatch(plotPoint, story.ownerPlot);
+  const publicAvg = getPublicAverage(story.id);
+  const publicPct = calcMatch(plotPoint, publicAvg);
+
+  userData.matchOwner.push(ownerPct);
+  userData.matchPublic.push(publicPct);
+
+  await saveVoteToFirebase(story.id, plotPoint);
+  await saveUserData();
+
+  document.getElementById('ownerMatch').textContent = ownerPct + '%';
+  document.getElementById('ownerMatch').className = 'result-value ' + matchClass(ownerPct);
+  document.getElementById('publicMatch').textContent = publicPct + '%';
+  document.getElementById('publicMatch').className = 'result-value ' + matchClass(publicPct);
+  document.getElementById('totalVotes').textContent = votesCache[story.id].length;
+  document.getElementById('voteResult').classList.add('show');
+  document.getElementById('btnVote').disabled = true;
+  document.getElementById('btnVote').textContent = 'PLOTTED ✓';
+
+  drawTriangle();
+  updateUserRankDisplay();
+
+  // Auto-advance to next unanswered ploy after 2 seconds
+  const remaining = stories.filter(s => !myVotes[s.id]);
+  if (remaining.length > 0) {
+    setTimeout(() => {
+      advanceToNextUnanswered();
+      loadStory();
+    }, 2000);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// STORIES
+// ═══════════════════════════════════════════════
+// Build a sorted queue: newest stories first, unanswered before answered
+function getStoryQueue() {
+  const unanswered = [];
+  const answered = [];
+  // Stories are already ordered newest-first in the array
+  for (let i = 0; i < stories.length; i++) {
+    if (myVotes[stories[i].id]) answered.push(i);
+    else unanswered.push(i);
+  }
+  return [...unanswered, ...answered];
+}
+
+function findCurrentQueueIdx() {
+  const queue = getStoryQueue();
+  // Default to first unanswered, or first story if all answered
+  return queue.length > 0 ? queue[0] : 0;
+}
+
+function advanceToNextUnanswered() {
+  const queue = getStoryQueue();
+  const unanswered = queue.filter(i => !myVotes[stories[i].id]);
+  if (unanswered.length > 0) {
+    currentStoryIdx = unanswered[0];
+  }
+  // If all answered, stay on current
+}
+
+function renderStory() {
+  if (!stories.length || !stories[currentStoryIdx]) return;
+  const story = stories[currentStoryIdx];
+  document.getElementById('storyTitle').textContent = story.title;
+  document.getElementById('storyDesc').textContent = story.desc;
+
+  // Status line
+  const unansweredCount = stories.filter(s => !myVotes[s.id]).length;
+  const statusEl = document.getElementById('storyStatus');
+  if (unansweredCount > 0) {
+    statusEl.innerHTML = '<em>' + unansweredCount + '</em> ploy' + (unansweredCount > 1 ? 's' : '') + ' remaining';
+  } else {
+    statusEl.innerHTML = 'All ploys plotted. Check the <em>Leaderboard</em>.';
+  }
+
+  if (myVotes[story.id]) {
+    const voteEntry = (votesCache[story.id] || []).find(v => v.userId === visitorId);
+    if (voteEntry) {
+      plotPoint = { scam: voteEntry.scam, steal: voteEntry.steal, scheme: voteEntry.scheme };
+      updateCoordDisplay();
+      document.getElementById('btnVote').disabled = true;
+      document.getElementById('btnVote').textContent = 'PLOTTED ✓';
+
+      const ownerPct = calcMatch(plotPoint, story.ownerPlot);
+      const publicPct = calcMatch(plotPoint, getPublicAverage(story.id));
+      document.getElementById('ownerMatch').textContent = ownerPct + '%';
+      document.getElementById('ownerMatch').className = 'result-value ' + matchClass(ownerPct);
+      document.getElementById('publicMatch').textContent = publicPct + '%';
+      document.getElementById('publicMatch').className = 'result-value ' + matchClass(publicPct);
+      document.getElementById('totalVotes').textContent = (votesCache[story.id] || []).length;
+      document.getElementById('voteResult').classList.add('show');
+    }
+  } else {
+    plotPoint = null;
+    document.getElementById('coordScam').textContent = 'SCAM 0%';
+    document.getElementById('coordSteal').textContent = 'STEAL 0%';
+    document.getElementById('coordScheme').textContent = 'SCHEME 0%';
+    document.getElementById('btnVote').disabled = true;
+    document.getElementById('btnVote').textContent = 'PLOT YOUR POINT';
+    document.getElementById('voteResult').classList.remove('show');
+  }
+}
+
+function loadStory() { renderStory(); drawTriangle(); }
+
+// ═══════════════════════════════════════════════
+// LEADERBOARD
+// ═══════════════════════════════════════════════
+async function renderLeaderboard() {
+  const lb = document.getElementById('leaderboard');
+  const emptyEl = document.getElementById('lbEmpty');
+
+  if (!firebaseAvailable) {
+    lb.querySelectorAll('.lb-row').forEach(r => r.remove());
+    emptyEl.textContent = 'Leaderboard requires an internet connection.';
+    emptyEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const snap = await db.collection('users')
+      .where('votes', '>', 0)
+      .get();
+
+    const entries = snap.docs.map(doc => {
+      const u = doc.data();
+      const avgOwner = u.matchOwner && u.matchOwner.length ? Math.round(u.matchOwner.reduce((a,b)=>a+b,0)/u.matchOwner.length) : 0;
+      const avgPublic = u.matchPublic && u.matchPublic.length ? Math.round(u.matchPublic.reduce((a,b)=>a+b,0)/u.matchPublic.length) : 0;
+      const rank = getRank(u.votes, avgOwner);
+      return { id: doc.id, name: u.name, votes: u.votes, avgOwner, avgPublic, rank };
+    })
+    .sort((a,b) => b.rank.score - a.rank.score || b.votes - a.votes);
+
+    lb.querySelectorAll('.lb-row').forEach(r => r.remove());
+
+    if (!entries.length) { emptyEl.style.display = 'block'; return; }
+    emptyEl.style.display = 'none';
+
+    entries.forEach((e, i) => {
+      const row = document.createElement('div');
+      row.className = 'lb-row' + (e.id === visitorId ? ' you' : '');
+      const rc = i===0 ? 'gold' : i===1 ? 'silver' : i===2 ? 'bronze' : '';
+      const you = e.id === visitorId ? '<span class="you-tag">YOU</span>' : '';
+
+      row.innerHTML = `
+        <div class="lb-rank ${rc}">${i+1}</div>
+        <div class="lb-name-cell">
+          <div class="lb-name">${escHtml(e.name)}${you}</div>
+        </div>
+        <div class="lb-rank-title">${e.rank.emoji} ${e.rank.name}</div>
+        <div class="lb-votes">${e.votes}</div>
+        <div class="lb-match ${matchClass(e.avgOwner)}">${e.avgOwner}%</div>
+        <div class="lb-match ${matchClass(e.avgPublic)}">${e.avgPublic}%</div>
+      `;
+      lb.appendChild(row);
+    });
+  } catch(e) {
+    console.error('Failed to render leaderboard:', e);
+    emptyEl.style.display = 'block';
+  }
+}
+
+function renderRankLadder() {
+  const avgOwner = userData.matchOwner && userData.matchOwner.length ? Math.round(userData.matchOwner.reduce((a,b)=>a+b,0)/userData.matchOwner.length) : 0;
+  const currentRank = getRank(userData.votes, avgOwner);
+  const ladder = document.getElementById('rankLadder');
+  ladder.innerHTML = '';
+
+  RANKS.forEach(r => {
+    const step = document.createElement('div');
+    const achieved = currentRank.score >= r.minScore;
+    const isCurrent = r.name === currentRank.name;
+    step.className = 'rank-step' + (isCurrent ? ' current' : achieved ? ' achieved' : '');
+    step.innerHTML = `<span class="step-emoji">${r.emoji}</span> ${r.name}`;
+    ladder.appendChild(step);
+  });
+}
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ═══════════════════════════════════════════════
+// IDENTITY
+// ═══════════════════════════════════════════════
+function updateUserRankDisplay() {
+  const avgOwner = userData.matchOwner && userData.matchOwner.length ? Math.round(userData.matchOwner.reduce((a,b)=>a+b,0)/userData.matchOwner.length) : 0;
+  const rank = getRank(userData.votes, avgOwner);
+
+  document.getElementById('userRankEmoji').textContent = rank.emoji;
+  document.getElementById('userRankName').textContent = rank.name;
+  document.getElementById('userBadge').textContent = userData.name;
+}
+
+function hashPhrase(phrase) {
+  let h = 0;
+  for (let i = 0; i < phrase.length; i++) {
+    h = ((h << 5) - h) + phrase.charCodeAt(i);
+    h |= 0;
+  }
+  return 'h_' + Math.abs(h).toString(36);
+}
+
+async function claimName() {
+  const nick = document.getElementById('inputNickname').value.trim();
+  const phrase = document.getElementById('inputPhrase').value.trim();
+  if (!nick || !phrase) return;
+
+  if (!firebaseAvailable) {
+    userData.name = nick;
+    userData.phraseHash = hashPhrase(phrase);
+    updateUserRankDisplay();
+    document.getElementById('claimSuccess').style.display = 'block';
+    setTimeout(() => { document.getElementById('claimSuccess').style.display = 'none'; }, 3000);
+    return;
+  }
+
+  try {
+    const snap = await db.collection('users')
+      .where('nameLower', '==', nick.toLowerCase())
+      .get();
+
+    const taken = snap.docs.some(doc => doc.id !== visitorId);
+    if (taken) { document.getElementById('nameError').style.display = 'block'; return; }
+    document.getElementById('nameError').style.display = 'none';
+
+    userData.name = nick;
+    userData.nameLower = nick.toLowerCase();
+    userData.phraseHash = hashPhrase(phrase);
+    await saveUserData();
+    updateUserRankDisplay();
+
+    document.getElementById('claimSuccess').style.display = 'block';
+    document.getElementById('inputNickname').value = '';
+    document.getElementById('inputPhrase').value = '';
+    setTimeout(() => { document.getElementById('claimSuccess').style.display = 'none'; }, 3000);
+  } catch(e) {
+    console.error('Failed to claim name:', e);
+  }
+}
+
+async function recoverAccount() {
+  const nick = document.getElementById('recoverNickname').value.trim();
+  const phrase = document.getElementById('recoverPhrase').value.trim();
+  if (!nick || !phrase) return;
+
+  if (!firebaseAvailable) {
+    document.getElementById('recoverError').textContent = 'Account recovery requires an internet connection.';
+    document.getElementById('recoverError').style.display = 'block';
+    return;
+  }
+
+  try {
+    const hashed = hashPhrase(phrase);
+    const snap = await db.collection('users')
+      .where('nameLower', '==', nick.toLowerCase())
+      .get();
+
+    const match = snap.docs.find(doc => doc.data().phraseHash === hashed);
+
+    if (!match) { document.getElementById('recoverError').style.display = 'block'; return; }
+    document.getElementById('recoverError').style.display = 'none';
+
+    const matchId = match.id;
+    if (visitorId !== matchId) {
+      const matchUserData = match.data();
+      if (userData.votes > 0 && userData.name === 'anonymous') {
+        await Promise.all(stories.map(async story => {
+          const voteSnap = await db.collection('stories').doc(story.id).collection('votes').doc(visitorId).get();
+          if (voteSnap.exists) {
+            await db.collection('stories').doc(story.id).collection('votes').doc(matchId).set(voteSnap.data());
+            await db.collection('stories').doc(story.id).collection('votes').doc(visitorId).delete();
+          }
+        }));
+
+        matchUserData.votes = (matchUserData.votes || 0) + userData.votes;
+        matchUserData.matchOwner = [...(matchUserData.matchOwner || []), ...(userData.matchOwner || [])];
+        matchUserData.matchPublic = [...(matchUserData.matchPublic || []), ...(userData.matchPublic || [])];
+        await db.collection('users').doc(matchId).set(matchUserData, { merge: true });
+      }
+      if (userData.name === 'anonymous') {
+        await db.collection('users').doc(visitorId).delete();
+      }
+      visitorId = matchId;
+      localStorage.setItem('sss_visitor_id', visitorId);
+      userData = matchUserData;
+    }
+
+    updateUserRankDisplay();
+    loadStory();
+
+    document.getElementById('recoverSuccess').style.display = 'block';
+    document.getElementById('recoverNickname').value = '';
+    document.getElementById('recoverPhrase').value = '';
+    setTimeout(() => { document.getElementById('recoverSuccess').style.display = 'none'; }, 3000);
+  } catch(e) {
+    console.error('Failed to recover account:', e);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// SUBMIT A PLOY
+// ═══════════════════════════════════════════════
+async function submitStory() {
+  const type = document.getElementById('submitType').value;
+  const title = document.getElementById('submitTitle').value.trim();
+  const content = document.getElementById('submitContent').value.trim();
+  if (!title || !content) return;
+
+  if (!firebaseAvailable) {
+    document.getElementById('submitSuccess').textContent = 'Submissions require an internet connection.';
+    document.getElementById('submitSuccess').style.display = 'block';
+    setTimeout(() => { document.getElementById('submitSuccess').style.display = 'none'; }, 3000);
+    return;
+  }
+
+  try {
+    await db.collection('submissions').add({
+      type, title, content,
+      submittedBy: visitorId,
+      status: 'pending',
+      ts: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById('submitTitle').value = '';
+    document.getElementById('submitContent').value = '';
+    document.getElementById('submitSuccess').style.display = 'block';
+    setTimeout(() => { document.getElementById('submitSuccess').style.display = 'none'; }, 3000);
+  } catch(e) {
+    console.error('Failed to submit story:', e);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+async function init() {
+  visitorId = getOrCreateVisitorId();
+  loadMyVotes();
+
+  const [loadedStories, loadedUserData] = await Promise.all([
+    loadStories(),
+    loadUserData()
+  ]);
+
+  stories = loadedStories;
+  userData = loadedUserData;
+
+  await Promise.all(stories.map(async story => {
+    votesCache[story.id] = await loadVotesForStory(story.id);
+  }));
+
+  // Start with first unanswered story (newest first)
+  currentStoryIdx = findCurrentQueueIdx();
+
+  resizeCanvas();
+  updateUserRankDisplay();
+  loadStory();
+}
+
+window.addEventListener('resize', resizeCanvas);
+init();
+</script>
+</body>
+</html>
