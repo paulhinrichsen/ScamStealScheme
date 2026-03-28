@@ -130,8 +130,8 @@
      PLOT TAB
      ═══════════════════════════════════════════ */
   .story-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: none;
+    border: 1px solid rgba(255,255,255,0.15);
     border-radius: 14px;
     padding: 20px 24px;
     margin-bottom: 20px;
@@ -168,10 +168,10 @@
   .vote-panel { flex: 1; min-width: 260px; max-width: 340px; }
 
   .your-plot {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
   }
   .your-plot h3 {
     font-family: 'Space Mono', monospace;
@@ -518,6 +518,26 @@
   }
   .admin-add-story textarea { resize: vertical; min-height: 80px; }
   .admin-add-story input:focus, .admin-add-story textarea:focus { border-color: var(--accent); }
+  .admin-plot-layout {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .admin-triangle-container {
+    position: relative;
+    width: 300px;
+    height: 280px;
+    flex-shrink: 0;
+  }
+  .admin-plot-info {
+    flex: 1;
+    min-width: 200px;
+  }
+  @media (max-width: 700px) {
+    .admin-triangle-container { width: 100%; height: 250px; }
+    .admin-plot-layout { flex-direction: column; }
+  }
   .admin-msg {
     font-size: 0.78rem;
     font-family: 'Space Mono', monospace;
@@ -629,7 +649,7 @@
           <button class="submit-vote" id="btnVote" disabled onclick="submitVote()">Plot your point</button>
           <div class="vote-result" id="voteResult">
             <div class="result-row">
-              <span class="result-label">Owner match</span>
+              <span class="result-label">vs Final Boss</span>
               <span class="result-value" id="ownerMatch">—</span>
             </div>
             <div class="result-row">
@@ -715,7 +735,7 @@
         <div>Name</div>
         <div>Rank</div>
         <div>Votes</div>
-        <div>vs Owner</div>
+        <div>vs Final Boss</div>
         <div>vs Public</div>
       </div>
       <div class="lb-empty" id="lbEmpty">No votes yet. Be the first to plot a point.</div>
@@ -728,8 +748,25 @@
     <!-- SET OWNER PLOT -->
     <div class="admin-section">
       <h3>Set Owner Plot</h3>
-      <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:14px;">Set or update your official answer for each live story. Values are percentages (must add to 100).</p>
-      <div id="adminOwnerPlots"></div>
+      <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:14px;">Click the triangle to set your official answer for each story.</p>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Select Story</label>
+        <select id="adminStorySelect" style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:6px;outline:none;" onchange="adminSelectStory()"></select>
+      </div>
+      <div class="admin-plot-layout">
+        <div class="admin-triangle-container">
+          <canvas id="adminTriangleCanvas" class="triangle-canvas" style="cursor:crosshair;"></canvas>
+        </div>
+        <div class="admin-plot-info">
+          <div class="coord-display">
+            <div class="coord-pill scam" id="adminCoordScam">SCAM 0%</div>
+            <div class="coord-pill steal" id="adminCoordSteal">STEAL 0%</div>
+            <div class="coord-pill scheme" id="adminCoordScheme">SCHEME 0%</div>
+          </div>
+          <button class="admin-btn primary" onclick="adminSaveOwnerPlotFromTriangle()" style="width:100%;padding:12px;margin-top:8px;">Save Owner Plot</button>
+          <div class="admin-msg" id="adminOwnerPlotMsg" style="margin-top:8px;"></div>
+        </div>
+      </div>
     </div>
 
     <!-- PENDING SUBMISSIONS -->
@@ -750,12 +787,20 @@
       <div class="admin-add-story">
         <input type="text" id="adminNewTitle" placeholder="Story title">
         <textarea id="adminNewDesc" placeholder="Story description..."></textarea>
-        <div class="owner-plot-form">
-          <label>Scam%</label><input type="number" id="adminNewScam" value="33" min="0" max="100">
-          <label>Steal%</label><input type="number" id="adminNewSteal" value="33" min="0" max="100">
-          <label>Scheme%</label><input type="number" id="adminNewScheme" value="34" min="0" max="100">
+        <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:8px;font-family:'Space Mono',monospace;">Click triangle to set owner plot:</p>
+        <div class="admin-plot-layout">
+          <div class="admin-triangle-container">
+            <canvas id="adminNewTriangleCanvas" class="triangle-canvas" style="cursor:crosshair;"></canvas>
+          </div>
+          <div class="admin-plot-info">
+            <div class="coord-display">
+              <div class="coord-pill scam" id="adminNewCoordScam">SCAM 0%</div>
+              <div class="coord-pill steal" id="adminNewCoordSteal">STEAL 0%</div>
+              <div class="coord-pill scheme" id="adminNewCoordScheme">SCHEME 0%</div>
+            </div>
+          </div>
         </div>
-        <button class="admin-btn primary" onclick="adminAddStory()" style="margin-top:12px;">Add Story (Live)</button>
+        <button class="admin-btn primary" onclick="adminAddStory()" style="width:100%;padding:12px;margin-top:12px;">Add Story (Live)</button>
         <div class="admin-msg" id="adminAddMsg"></div>
       </div>
     </div>
@@ -1058,7 +1103,7 @@ function resizeCanvas() {
 function drawTriangle() {
   const w = canvas.width / (window.devicePixelRatio || 1);
   const h = canvas.height / (window.devicePixelRatio || 1);
-  ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, w, h);
 
   const { scam: A, steal: B, scheme: C } = triVerts;
 
@@ -1096,7 +1141,7 @@ function drawTriangle() {
     const op = baryToCart(story.ownerPlot.scam, story.ownerPlot.steal, story.ownerPlot.scheme);
     drawDot(op.x, op.y, '#ff2d78', 'rgba(255, 45, 120, 0.3)', 9);
     ctx.font = '600 9px "Space Mono", monospace'; ctx.textAlign = 'center';
-    ctx.fillStyle = '#ff2d78'; ctx.fillText('OWNER', op.x, op.y - 18);
+    ctx.fillStyle = '#ff2d78'; ctx.fillText('FINAL BOSS', op.x, op.y - 18);
   }
 
   if (storyVotes.length > 0) {
@@ -1559,47 +1604,171 @@ function getRankWithAdmin(votes, avgOwnerMatch, name) {
   return _originalGetRank(votes, avgOwnerMatch);
 }
 
-// ── Admin: render owner plot editors for each live story ──
-function renderAdminOwnerPlots() {
-  const container = document.getElementById('adminOwnerPlots');
-  if (!container) return;
-  container.innerHTML = '';
+// ── Admin: triangle-based owner plot picker ──
+let adminCanvas = null, adminCtx = null, adminTriVerts = null;
+let adminPlotPoint = null, adminSelectedStoryIdx = 0;
+let adminNewCanvas = null, adminNewCtx = null, adminNewTriVerts = null;
+let adminNewPlotPoint = null;
 
-  stories.forEach((story, idx) => {
-    const op = story.ownerPlot || { scam: 0.33, steal: 0.33, scheme: 0.34 };
-    const div = document.createElement('div');
-    div.className = 'admin-story-item';
-    div.style.flexWrap = 'wrap';
-    div.innerHTML = `
-      <div class="admin-story-info">
-        <div class="title">${escHtml(story.title)}</div>
-        <div class="meta">Current: Scam ${Math.round(op.scam*100)}% / Steal ${Math.round(op.steal*100)}% / Scheme ${Math.round(op.scheme*100)}%</div>
-      </div>
-      <div class="owner-plot-form" id="opForm-${idx}">
-        <label>Scam%</label><input type="number" id="opScam-${idx}" value="${Math.round(op.scam*100)}" min="0" max="100">
-        <label>Steal%</label><input type="number" id="opSteal-${idx}" value="${Math.round(op.steal*100)}" min="0" max="100">
-        <label>Scheme%</label><input type="number" id="opScheme-${idx}" value="${Math.round(op.scheme*100)}" min="0" max="100">
-        <button class="admin-btn primary" onclick="adminSaveOwnerPlot(${idx})">Save</button>
-        <span class="admin-msg" id="opMsg-${idx}"></span>
-      </div>
-    `;
-    container.appendChild(div);
-  });
+function setupAdminTriangle(cvs, ctxRef, vertsRef) {
+  const rect = cvs.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  cvs.width = rect.width * dpr;
+  cvs.height = rect.height * dpr;
+  cvs.style.width = rect.width + 'px';
+  cvs.style.height = rect.height + 'px';
+  const c = cvs.getContext('2d');
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const w = rect.width, h = rect.height;
+  const pad = 50;
+  const triH = h - pad * 2;
+  const triW = Math.min(w - pad * 2, triH * 1.15);
+  const cx = w / 2;
+
+  const verts = {
+    scam:   { x: cx,            y: pad },
+    steal:  { x: cx - triW / 2, y: pad + triH },
+    scheme: { x: cx + triW / 2, y: pad + triH }
+  };
+  return { ctx: c, verts };
 }
 
-async function adminSaveOwnerPlot(idx) {
-  const story = stories[idx];
-  const scam = parseInt(document.getElementById('opScam-' + idx).value) || 0;
-  const steal = parseInt(document.getElementById('opSteal-' + idx).value) || 0;
-  const scheme = parseInt(document.getElementById('opScheme-' + idx).value) || 0;
-  const total = scam + steal + scheme;
+function drawAdminTriangle(cvs, c, verts, point, existingPoint) {
+  const w = cvs.width / (window.devicePixelRatio || 1);
+  const h = cvs.height / (window.devicePixelRatio || 1);
+  c.fillStyle = '#0a0a0a'; c.fillRect(0, 0, w, h);
 
-  const msgEl = document.getElementById('opMsg-' + idx);
-  if (total !== 100) {
-    msgEl.className = 'admin-msg error'; msgEl.style.display = 'inline';
-    msgEl.textContent = 'Must add to 100 (got ' + total + ')';
+  const { scam: A, steal: B, scheme: C } = verts;
+
+  c.beginPath();
+  c.moveTo(A.x, A.y); c.lineTo(B.x, B.y); c.lineTo(C.x, C.y); c.closePath();
+  const grad = c.createLinearGradient(A.x, A.y, B.x, B.y);
+  grad.addColorStop(0, 'rgba(0, 229, 255, 0.04)');
+  grad.addColorStop(0.5, 'rgba(255, 45, 120, 0.04)');
+  grad.addColorStop(1, 'rgba(255, 215, 64, 0.04)');
+  c.fillStyle = grad; c.fill();
+
+  c.beginPath();
+  c.moveTo(A.x, A.y); c.lineTo(B.x, B.y); c.lineTo(C.x, C.y); c.closePath();
+  c.strokeStyle = 'rgba(255, 255, 255, 0.1)'; c.lineWidth = 1.5; c.stroke();
+
+  const triSize = Math.hypot(C.x - B.x, C.y - B.y);
+  const labelSize = Math.max(12, Math.min(20, triSize * 0.08));
+  c.font = `800 ${labelSize}px "Space Mono", monospace`;
+  c.textAlign = 'center';
+  c.fillStyle = '#ff5c9a'; c.fillText('SCAM', A.x, A.y - 10);
+  c.fillStyle = '#ffd740'; c.fillText('STEAL', B.x, B.y + labelSize + 6);
+  c.fillStyle = '#00e5ff'; c.fillText('SCHEME', C.x, C.y + labelSize + 6);
+
+  // Show existing owner plot as dim dot
+  if (existingPoint) {
+    const ep = adminBaryToCart(existingPoint.scam, existingPoint.steal, existingPoint.scheme, verts);
+    c.beginPath(); c.arc(ep.x, ep.y, 6, 0, Math.PI * 2);
+    c.fillStyle = 'rgba(255, 45, 120, 0.3)'; c.fill();
+    c.beginPath(); c.arc(ep.x, ep.y, 3, 0, Math.PI * 2);
+    c.fillStyle = '#ff2d78'; c.fill();
+    c.font = '600 8px "Space Mono", monospace';
+    c.fillStyle = 'rgba(255,45,120,0.6)'; c.fillText('CURRENT', ep.x, ep.y - 10);
+  }
+
+  // Show clicked point
+  if (point) {
+    const pp = adminBaryToCart(point.scam, point.steal, point.scheme, verts);
+    drawDot(pp.x, pp.y, '#00e5ff', 'rgba(0, 229, 255, 0.35)', 8);
+    c.beginPath(); c.arc(pp.x, pp.y, 12, 0, Math.PI * 2);
+    c.strokeStyle = 'rgba(0, 229, 255, 0.2)'; c.lineWidth = 1.5; c.stroke();
+    c.font = '600 8px "Space Mono", monospace'; c.textAlign = 'center';
+    c.fillStyle = '#00e5ff'; c.fillText('NEW', pp.x, pp.y - 14);
+  }
+}
+
+function adminBaryToCart(scam, steal, scheme, verts) {
+  const { scam: A, steal: B, scheme: C } = verts;
+  return { x: scam*A.x + steal*B.x + scheme*C.x, y: scam*A.y + steal*B.y + scheme*C.y };
+}
+
+function adminCartToBary(px, py, verts) {
+  const { scam: A, steal: B, scheme: C } = verts;
+  const det = (B.y-C.y)*(A.x-C.x) + (C.x-B.x)*(A.y-C.y);
+  let scam = ((B.y-C.y)*(px-C.x) + (C.x-B.x)*(py-C.y)) / det;
+  let steal = ((C.y-A.y)*(px-C.x) + (A.x-C.x)*(py-C.y)) / det;
+  let scheme = 1 - scam - steal;
+  scam = Math.max(0, Math.min(1, scam));
+  steal = Math.max(0, Math.min(1, steal));
+  scheme = Math.max(0, Math.min(1, scheme));
+  const t = scam + steal + scheme;
+  return { scam: scam/t, steal: steal/t, scheme: scheme/t };
+}
+
+function renderAdminOwnerPlots() {
+  // Populate story selector
+  const select = document.getElementById('adminStorySelect');
+  if (!select) return;
+  select.innerHTML = '';
+  stories.forEach((story, idx) => {
+    const op = story.ownerPlot || { scam: 0.33, steal: 0.33, scheme: 0.34 };
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = story.title + ' — Scam ' + Math.round(op.scam*100) + '% / Steal ' + Math.round(op.steal*100) + '% / Scheme ' + Math.round(op.scheme*100) + '%';
+    select.appendChild(opt);
+  });
+
+  // Setup canvas
+  adminCanvas = document.getElementById('adminTriangleCanvas');
+  if (!adminCanvas) return;
+  const setup = setupAdminTriangle(adminCanvas);
+  adminCtx = setup.ctx;
+  adminTriVerts = setup.verts;
+
+  adminSelectedStoryIdx = 0;
+  adminPlotPoint = null;
+  adminSelectStory();
+
+  // Click handler
+  adminCanvas.onclick = function(e) {
+    const rect = adminCanvas.getBoundingClientRect();
+    const px = e.clientX - rect.left, py = e.clientY - rect.top;
+    const b = adminCartToBary(px, py, adminTriVerts);
+    if (b.scam < -0.02 || b.steal < -0.02 || b.scheme < -0.02) return;
+    adminPlotPoint = b;
+    document.getElementById('adminCoordScam').textContent = 'SCAM ' + Math.round(b.scam*100) + '%';
+    document.getElementById('adminCoordSteal').textContent = 'STEAL ' + Math.round(b.steal*100) + '%';
+    document.getElementById('adminCoordScheme').textContent = 'SCHEME ' + Math.round(b.scheme*100) + '%';
+    const story = stories[adminSelectedStoryIdx];
+    drawAdminTriangle(adminCanvas, adminCtx, adminTriVerts, adminPlotPoint, story ? story.ownerPlot : null);
+  };
+}
+
+function adminSelectStory() {
+  const select = document.getElementById('adminStorySelect');
+  adminSelectedStoryIdx = parseInt(select.value) || 0;
+  adminPlotPoint = null;
+  const story = stories[adminSelectedStoryIdx];
+  const op = story ? (story.ownerPlot || { scam: 0.33, steal: 0.33, scheme: 0.34 }) : null;
+  if (op) {
+    document.getElementById('adminCoordScam').textContent = 'SCAM ' + Math.round(op.scam*100) + '%';
+    document.getElementById('adminCoordSteal').textContent = 'STEAL ' + Math.round(op.steal*100) + '%';
+    document.getElementById('adminCoordScheme').textContent = 'SCHEME ' + Math.round(op.scheme*100) + '%';
+  }
+  if (adminCtx && adminTriVerts) {
+    drawAdminTriangle(adminCanvas, adminCtx, adminTriVerts, null, op);
+  }
+}
+
+async function adminSaveOwnerPlotFromTriangle() {
+  if (!adminPlotPoint) {
+    const msgEl = document.getElementById('adminOwnerPlotMsg');
+    msgEl.className = 'admin-msg error'; msgEl.style.display = 'block';
+    msgEl.textContent = 'Click the triangle first to set a point.';
+    setTimeout(() => { msgEl.style.display = 'none'; }, 2000);
     return;
   }
+
+  const story = stories[adminSelectedStoryIdx];
+  const scam = Math.round(adminPlotPoint.scam * 100);
+  const steal = Math.round(adminPlotPoint.steal * 100);
+  const scheme = 100 - scam - steal; // ensure adds to 100
 
   story.ownerPlot = { scam: scam/100, steal: steal/100, scheme: scheme/100 };
 
@@ -1611,14 +1780,17 @@ async function adminSaveOwnerPlot(idx) {
     } catch(e) { console.error('Failed to save owner plot:', e); }
   }
 
-  msgEl.className = 'admin-msg success'; msgEl.style.display = 'inline';
-  msgEl.textContent = 'Saved ✓';
+  const msgEl = document.getElementById('adminOwnerPlotMsg');
+  msgEl.className = 'admin-msg success'; msgEl.style.display = 'block';
+  msgEl.textContent = 'Saved ✓ — ' + story.title;
   setTimeout(() => { msgEl.style.display = 'none'; }, 2000);
 
-  // Update meta text
-  const meta = msgEl.closest('.admin-story-item').querySelector('.meta');
-  meta.textContent = `Current: Scam ${scam}% / Steal ${steal}% / Scheme ${scheme}%`;
+  // Update dropdown text
+  const select = document.getElementById('adminStorySelect');
+  select.options[adminSelectedStoryIdx].textContent = story.title + ' — Scam ' + scam + '% / Steal ' + steal + '% / Scheme ' + scheme + '%';
 
+  adminPlotPoint = null;
+  drawAdminTriangle(adminCanvas, adminCtx, adminTriVerts, null, story.ownerPlot);
   drawTriangle();
 }
 
@@ -1749,12 +1921,31 @@ async function adminDeleteStory(storyId, btnEl) {
 }
 
 // ── Admin: add new story ──
+function setupAdminNewTriangle() {
+  adminNewCanvas = document.getElementById('adminNewTriangleCanvas');
+  if (!adminNewCanvas) return;
+  const setup = setupAdminTriangle(adminNewCanvas);
+  adminNewCtx = setup.ctx;
+  adminNewTriVerts = setup.verts;
+  adminNewPlotPoint = null;
+  drawAdminTriangle(adminNewCanvas, adminNewCtx, adminNewTriVerts, null, null);
+
+  adminNewCanvas.onclick = function(e) {
+    const rect = adminNewCanvas.getBoundingClientRect();
+    const px = e.clientX - rect.left, py = e.clientY - rect.top;
+    const b = adminCartToBary(px, py, adminNewTriVerts);
+    if (b.scam < -0.02 || b.steal < -0.02 || b.scheme < -0.02) return;
+    adminNewPlotPoint = b;
+    document.getElementById('adminNewCoordScam').textContent = 'SCAM ' + Math.round(b.scam*100) + '%';
+    document.getElementById('adminNewCoordSteal').textContent = 'STEAL ' + Math.round(b.steal*100) + '%';
+    document.getElementById('adminNewCoordScheme').textContent = 'SCHEME ' + Math.round(b.scheme*100) + '%';
+    drawAdminTriangle(adminNewCanvas, adminNewCtx, adminNewTriVerts, adminNewPlotPoint, null);
+  };
+}
+
 async function adminAddStory() {
   const title = document.getElementById('adminNewTitle').value.trim();
   const desc = document.getElementById('adminNewDesc').value.trim();
-  const scam = parseInt(document.getElementById('adminNewScam').value) || 0;
-  const steal = parseInt(document.getElementById('adminNewSteal').value) || 0;
-  const scheme = parseInt(document.getElementById('adminNewScheme').value) || 0;
   const msgEl = document.getElementById('adminAddMsg');
 
   if (!title || !desc) {
@@ -1762,11 +1953,15 @@ async function adminAddStory() {
     msgEl.textContent = 'Title and description required.';
     return;
   }
-  if (scam + steal + scheme !== 100) {
+  if (!adminNewPlotPoint) {
     msgEl.className = 'admin-msg error'; msgEl.style.display = 'block';
-    msgEl.textContent = 'Percentages must add to 100.';
+    msgEl.textContent = 'Click the triangle to set the owner plot.';
     return;
   }
+
+  const scam = Math.round(adminNewPlotPoint.scam * 100);
+  const steal = Math.round(adminNewPlotPoint.steal * 100);
+  const scheme = 100 - scam - steal;
 
   const newStory = {
     title, description: desc,
@@ -1783,7 +1978,6 @@ async function adminAddStory() {
     } catch(e) { console.error('Failed to add story:', e); }
   }
 
-  // Add to local state
   const localStory = {
     id: newId, title, desc,
     ownerPlot: { scam: scam/100, steal: steal/100, scheme: scheme/100 }
@@ -1795,6 +1989,12 @@ async function adminAddStory() {
 
   document.getElementById('adminNewTitle').value = '';
   document.getElementById('adminNewDesc').value = '';
+  adminNewPlotPoint = null;
+  document.getElementById('adminNewCoordScam').textContent = 'SCAM 0%';
+  document.getElementById('adminNewCoordSteal').textContent = 'STEAL 0%';
+  document.getElementById('adminNewCoordScheme').textContent = 'SCHEME 0%';
+  drawAdminTriangle(adminNewCanvas, adminNewCtx, adminNewTriVerts, null, null);
+
   msgEl.className = 'admin-msg success'; msgEl.style.display = 'block';
   msgEl.textContent = 'Story added ✓';
   setTimeout(() => { msgEl.style.display = 'none'; }, 2000);
@@ -1807,6 +2007,7 @@ async function adminAddStory() {
 function renderAdminPanel() {
   if (!isAdmin) return;
   renderAdminOwnerPlots();
+  setupAdminNewTriangle();
   renderAdminPending();
   renderAdminLiveStories();
 }
