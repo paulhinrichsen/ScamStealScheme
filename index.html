@@ -2391,58 +2391,56 @@ function generateShareImage(pp) {
   octx.fillStyle = '#000000';
   octx.fillRect(0, 0, SIZE, SIZE);
 
-  // Triangle geometry (1080x1080)
-  const pad = 130;
-  const triH = SIZE - pad * 2 - 70;
-  const triW = Math.min(SIZE - pad * 2, triH * 1.15);
+  // Triangle geometry — smaller triangle with more breathing room around it
+  const pad = 200;
+  const triH = SIZE - pad * 2 - 40;
+  const triW = Math.min(SIZE - pad * 2, triH * 1.1);
   const cx = SIZE / 2;
-  const A = { x: cx,             y: pad + 20 };
+  const A = { x: cx,             y: pad };
   const B = { x: cx - triW / 2,  y: pad + triH };
   const C = { x: cx + triW / 2,  y: pad + triH };
 
-  // Triangle edges
+  // Triangle edges — thick lines
   octx.beginPath();
   octx.moveTo(A.x, A.y); octx.lineTo(B.x, B.y); octx.lineTo(C.x, C.y);
   octx.closePath();
-  octx.strokeStyle = '#ffffff'; octx.lineWidth = 5; octx.stroke();
+  octx.strokeStyle = '#ffffff'; octx.lineWidth = 10; octx.stroke();
 
-  // Corner labels
-  const lsz = 38;
+  // Corner labels — bigger font
+  const lsz = 52;
   octx.textAlign = 'center';
   octx.font = `800 ${lsz}px "Space Mono", monospace`;
-  octx.shadowColor = '#ff5c9a'; octx.shadowBlur = 28;
-  octx.fillStyle = '#ff5c9a'; octx.fillText('SCAM', A.x, A.y - 26);
+  octx.shadowColor = '#ff5c9a'; octx.shadowBlur = 32;
+  octx.fillStyle = '#ff5c9a'; octx.fillText('SCAM', A.x, A.y - 28);
   octx.shadowBlur = 0;
-  octx.shadowColor = '#ffd740'; octx.shadowBlur = 28;
-  octx.fillStyle = '#ffd740'; octx.fillText('STEAL', B.x, B.y + lsz + 16);
+  octx.shadowColor = '#ffd740'; octx.shadowBlur = 32;
+  octx.fillStyle = '#ffd740'; octx.fillText('STEAL', B.x, B.y + lsz + 18);
   octx.shadowBlur = 0;
-  octx.shadowColor = '#00e5ff'; octx.shadowBlur = 28;
-  octx.fillStyle = '#00e5ff'; octx.fillText('SCHEME', C.x, C.y + lsz + 16);
+  octx.shadowColor = '#00e5ff'; octx.shadowBlur = 32;
+  octx.fillStyle = '#00e5ff'; octx.fillText('SCHEME', C.x, C.y + lsz + 18);
   octx.shadowBlur = 0;
 
-  // User's dot — only this, no other plots
+  // User's dot — large, no label
   const dx = pp.scam * A.x + pp.steal * B.x + pp.scheme * C.x;
   const dy = pp.scam * A.y + pp.steal * B.y + pp.scheme * C.y;
   // Outer glow
-  octx.beginPath(); octx.arc(dx, dy, 32, 0, Math.PI * 2);
-  octx.fillStyle = 'rgba(0,229,255,0.2)'; octx.fill();
+  octx.beginPath(); octx.arc(dx, dy, 52, 0, Math.PI * 2);
+  octx.fillStyle = 'rgba(0,229,255,0.12)'; octx.fill();
   // Mid glow
-  octx.beginPath(); octx.arc(dx, dy, 22, 0, Math.PI * 2);
-  octx.fillStyle = 'rgba(0,229,255,0.3)'; octx.fill();
+  octx.beginPath(); octx.arc(dx, dy, 38, 0, Math.PI * 2);
+  octx.fillStyle = 'rgba(0,229,255,0.22)'; octx.fill();
+  // Inner glow
+  octx.beginPath(); octx.arc(dx, dy, 26, 0, Math.PI * 2);
+  octx.fillStyle = 'rgba(0,229,255,0.35)'; octx.fill();
   // Dot
-  octx.beginPath(); octx.arc(dx, dy, 14, 0, Math.PI * 2);
+  octx.beginPath(); octx.arc(dx, dy, 18, 0, Math.PI * 2);
   octx.fillStyle = '#00e5ff'; octx.fill();
-  // Specular
-  octx.beginPath(); octx.arc(dx - 4, dy - 4, 5, 0, Math.PI * 2);
-  octx.fillStyle = 'rgba(255,255,255,0.3)'; octx.fill();
-  // Ring
-  octx.beginPath(); octx.arc(dx, dy, 24, 0, Math.PI * 2);
-  octx.strokeStyle = 'rgba(0,229,255,0.25)'; octx.lineWidth = 2; octx.stroke();
-  // YOU label
-  octx.font = 'bold 20px "Space Mono", monospace';
-  octx.shadowColor = '#00e5ff'; octx.shadowBlur = 10;
-  octx.fillStyle = '#00e5ff'; octx.fillText('YOU', dx, dy - 36);
-  octx.shadowBlur = 0;
+  // Specular highlight
+  octx.beginPath(); octx.arc(dx - 5, dy - 5, 7, 0, Math.PI * 2);
+  octx.fillStyle = 'rgba(255,255,255,0.35)'; octx.fill();
+  // Outer ring
+  octx.beginPath(); octx.arc(dx, dy, 30, 0, Math.PI * 2);
+  octx.strokeStyle = 'rgba(0,229,255,0.3)'; octx.lineWidth = 2.5; octx.stroke();
 
   // Percentage breakdown
   const pS = Math.round(pp.scam * 100);
