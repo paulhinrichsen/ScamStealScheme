@@ -10,7 +10,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --bg: #0a0a0a;
+    --bg: #000000;
     --surface: #111;
     --surface2: #1a1a1a;
     --border: #262626;
@@ -1169,30 +1169,36 @@ function resizeCanvas() {
 function drawTriangle() {
   const w = canvas.width / (window.devicePixelRatio || 1);
   const h = canvas.height / (window.devicePixelRatio || 1);
-  ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = '#000000'; ctx.fillRect(0, 0, w, h);
 
   const { scam: A, steal: B, scheme: C } = triVerts;
 
   ctx.beginPath();
   ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath();
-  const grad = ctx.createLinearGradient(A.x, A.y, B.x, B.y);
-  grad.addColorStop(0, 'rgba(0, 229, 255, 0.04)');
-  grad.addColorStop(0.5, 'rgba(255, 45, 120, 0.04)');
-  grad.addColorStop(1, 'rgba(255, 215, 64, 0.04)');
-  ctx.fillStyle = grad; ctx.fill();
-
-  ctx.beginPath();
-  ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath();
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3.75; ctx.stroke();
 
 
   const triSize = Math.hypot(C.x - B.x, C.y - B.y);
-  const labelSize = Math.max(14, Math.min(24, triSize * 0.08));
-  ctx.font = `800 ${labelSize}px "Space Mono", monospace`;
+  const labelSize = Math.max(16, Math.min(28, triSize * 0.1));
   ctx.textAlign = 'center';
-  ctx.fillStyle = '#ff5c9a'; ctx.fillText('SCAM', A.x, A.y - 14);
-  ctx.fillStyle = '#ffd740'; ctx.fillText('STEAL', B.x, B.y + labelSize + 8);
-  ctx.fillStyle = '#00e5ff'; ctx.fillText('SCHEME', C.x, C.y + labelSize + 8);
+  ctx.letterSpacing = '4px';
+
+  // SCAM — pink with glow
+  ctx.font = `800 ${labelSize}px "Space Mono", monospace`;
+  ctx.shadowColor = '#ff5c9a'; ctx.shadowBlur = 18;
+  ctx.fillStyle = '#ff5c9a'; ctx.fillText('SCAM', A.x, A.y - 16);
+  ctx.shadowBlur = 0;
+
+  // STEAL — gold with glow
+  ctx.shadowColor = '#ffd740'; ctx.shadowBlur = 18;
+  ctx.fillStyle = '#ffd740'; ctx.fillText('STEAL', B.x, B.y + labelSize + 10);
+  ctx.shadowBlur = 0;
+
+  // SCHEME — cyan with glow
+  ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 18;
+  ctx.fillStyle = '#00e5ff'; ctx.fillText('SCHEME', C.x, C.y + labelSize + 10);
+  ctx.shadowBlur = 0;
+  ctx.letterSpacing = '0px';
 
   if (!stories.length || !stories[currentStoryIdx]) return;
   const story = stories[currentStoryIdx];
@@ -1719,29 +1725,32 @@ function setupAdminTriangle(cvs, ctxRef, vertsRef) {
 function drawAdminTriangle(cvs, c, verts, point, existingPoint) {
   const w = cvs.width / (window.devicePixelRatio || 1);
   const h = cvs.height / (window.devicePixelRatio || 1);
-  c.fillStyle = '#0a0a0a'; c.fillRect(0, 0, w, h);
+  c.fillStyle = '#000000'; c.fillRect(0, 0, w, h);
 
   const { scam: A, steal: B, scheme: C } = verts;
 
   c.beginPath();
   c.moveTo(A.x, A.y); c.lineTo(B.x, B.y); c.lineTo(C.x, C.y); c.closePath();
-  const grad = c.createLinearGradient(A.x, A.y, B.x, B.y);
-  grad.addColorStop(0, 'rgba(0, 229, 255, 0.04)');
-  grad.addColorStop(0.5, 'rgba(255, 45, 120, 0.04)');
-  grad.addColorStop(1, 'rgba(255, 215, 64, 0.04)');
-  c.fillStyle = grad; c.fill();
-
-  c.beginPath();
-  c.moveTo(A.x, A.y); c.lineTo(B.x, B.y); c.lineTo(C.x, C.y); c.closePath();
-  c.strokeStyle = 'rgba(255, 255, 255, 0.1)'; c.lineWidth = 1.5; c.stroke();
+  c.strokeStyle = '#ffffff'; c.lineWidth = 3.75; c.stroke();
 
   const triSize = Math.hypot(C.x - B.x, C.y - B.y);
-  const labelSize = Math.max(12, Math.min(20, triSize * 0.08));
+  const labelSize = Math.max(13, Math.min(22, triSize * 0.09));
   c.font = `800 ${labelSize}px "Space Mono", monospace`;
   c.textAlign = 'center';
-  c.fillStyle = '#ff5c9a'; c.fillText('SCAM', A.x, A.y - 10);
-  c.fillStyle = '#ffd740'; c.fillText('STEAL', B.x, B.y + labelSize + 6);
-  c.fillStyle = '#00e5ff'; c.fillText('SCHEME', C.x, C.y + labelSize + 6);
+  c.letterSpacing = '3px';
+
+  c.shadowColor = '#ff5c9a'; c.shadowBlur = 14;
+  c.fillStyle = '#ff5c9a'; c.fillText('SCAM', A.x, A.y - 12);
+  c.shadowBlur = 0;
+
+  c.shadowColor = '#ffd740'; c.shadowBlur = 14;
+  c.fillStyle = '#ffd740'; c.fillText('STEAL', B.x, B.y + labelSize + 8);
+  c.shadowBlur = 0;
+
+  c.shadowColor = '#00e5ff'; c.shadowBlur = 14;
+  c.fillStyle = '#00e5ff'; c.fillText('SCHEME', C.x, C.y + labelSize + 8);
+  c.shadowBlur = 0;
+  c.letterSpacing = '0px';
 
   // Show existing owner plot as dim dot
   if (existingPoint) {
