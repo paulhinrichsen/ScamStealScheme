@@ -2156,6 +2156,18 @@ async function adminSaveOwnerPlotFromTriangle() {
         official: { scam, steal, scheme },
         ownerPlotSet: true
       });
+      // Record this as the admin's vote if not already voted
+      if (!myVotes[story.id]) {
+        await saveVoteToFirebase(story.id, adminPlotPoint);
+        myVotes[story.id] = true;
+        saveMyVotes();
+        userData.votes++;
+        userData.matchOwner.push(100);
+        const publicAvg = getPublicAverage(story.id);
+        const publicPct = calcMatch(adminPlotPoint, publicAvg);
+        userData.matchPublic.push(publicPct);
+        await saveUserData();
+      }
     } catch(e) { console.error('Failed to save owner plot:', e); }
   }
 
@@ -2753,6 +2765,23 @@ async function adminPublishStory() {
       ts: firebase.firestore.FieldValue.serverTimestamp()
     });
     await db.collection('submissions').doc(pendingApproveSubId).update({ status: 'approved' });
+
+    // Record the admin's plot as their vote on this story
+    const newStorySnap = await db.collection('stories')
+      .where('description', '==', sub.content).orderBy('ts', 'desc').limit(1).get();
+    if (!newStorySnap.empty) {
+      const newStoryId = newStorySnap.docs[0].id;
+      await saveVoteToFirebase(newStoryId, approvePlotPoint);
+      myVotes[newStoryId] = true;
+      saveMyVotes();
+      // Update user vote count & match stats (100% match to own plot)
+      userData.votes++;
+      userData.matchOwner.push(100);
+      const publicAvg = getPublicAverage(newStoryId);
+      const publicPct = calcMatch(approvePlotPoint, publicAvg);
+      userData.matchPublic.push(publicPct);
+      await saveUserData();
+    }
 
     // Remove from pending queue in DOM
     if (sub._btnEl) {
