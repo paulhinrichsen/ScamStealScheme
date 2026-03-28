@@ -930,6 +930,7 @@
         <label>Submission Type</label>
         <select id="submitType" onchange="handleSubmitTypeChange()">
           <option value="xpost">X / Twitter Post Link</option>
+          <option value="linkedin">LinkedIn Post Link</option>
           <option value="url">Article URL</option>
           <option value="text">Paste / Write It</option>
         </select>
@@ -1060,15 +1061,15 @@ try {
 // ═══════════════════════════════════════════════
 const RANKS = [
   { name: 'Runescape Scammer',     emoji: '⚔️', minScore: 0   },
-  { name: 'Shitcoin Shiller',      emoji: '🪙', minScore: 8   },
-  { name: 'Snitch',                emoji: '🐀', minScore: 15  },
-  { name: 'Pickpocket',            emoji: '🤏', minScore: 35  },
-  { name: 'Con Artist',            emoji: '🎭', minScore: 60  },
-  { name: 'Fraudster',             emoji: '💳', minScore: 95  },
-  { name: 'Embezzler',             emoji: '🧳', minScore: 140 },
-  { name: 'Cartel Accountant',     emoji: '🧮', minScore: 200 },
-  { name: 'Criminal Mastermind',   emoji: '🧠', minScore: 280 },
-  { name: 'Ponzi Supreme',         emoji: '👑', minScore: 380 },
+  { name: 'Shitcoin Shiller',      emoji: '🪙', minScore: 12  },
+  { name: 'Snitch',                emoji: '🐀', minScore: 30  },
+  { name: 'Pickpocket',            emoji: '🤏', minScore: 60  },
+  { name: 'Con Artist',            emoji: '🎭', minScore: 100 },
+  { name: 'Fraudster',             emoji: '💳', minScore: 160 },
+  { name: 'Embezzler',             emoji: '🧳', minScore: 240 },
+  { name: 'Cartel Accountant',     emoji: '🧮', minScore: 340 },
+  { name: 'Criminal Mastermind',   emoji: '🧠', minScore: 460 },
+  { name: 'Ponzi Supreme',         emoji: '👑', minScore: 600 },
 ];
 
 function getRank(votes, avgOwnerMatch) {
@@ -1192,6 +1193,8 @@ async function loadStories() {
         desc: data.description,
         source: data.source || null,
         tweetUrl: data.source === 'xpost' ? extractTweetUrl(data.description) : null,
+        linkedinUrl: data.source === 'linkedin' ? data.description : null,
+        linkUrl: data.source === 'url' ? data.description : null,
         ownerPlotSet: data.ownerPlotSet || false,
         ownerPlot: {
           scam: (official.scam || 0) / 100,
@@ -1530,12 +1533,11 @@ async function submitVote() {
   drawTriangle();
   updateUserRankDisplay();
 
-  // Show share image modal — auto-advance happens when user closes it
-  const hasRemaining = stories.some(s => !myVotes[s.id]);
-  showShareModal(generateShareImage(plotPoint), hasRemaining ? () => {
+  // Show share image modal — advance/hide happens when user closes it
+  showShareModal(generateShareImage(plotPoint), () => {
     advanceToNextUnanswered();
     loadStory();
-  } : null);
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -1570,7 +1572,8 @@ function advanceToNextUnanswered() {
 
 function renderStory() {
   const storyCard = document.getElementById('storyCard');
-  if (!stories.length || !stories[currentStoryIdx]) {
+  const anyUnanswered = stories.some(s => !myVotes[s.id]);
+  if (!stories.length || !stories[currentStoryIdx] || !anyUnanswered) {
     if (storyCard) storyCard.style.display = 'none';
     return;
   }
@@ -1581,6 +1584,12 @@ function renderStory() {
     document.getElementById('storyTitle').style.display = 'none';
     document.getElementById('storyDesc').style.display = 'none';
     renderTweetEmbed(story.tweetUrl);
+  } else if (story.linkedinUrl) {
+    document.getElementById('storyTitle').style.display = '';
+    document.getElementById('storyTitle').textContent = story.title || 'LinkedIn Post';
+    document.getElementById('storyDesc').style.display = '';
+    document.getElementById('storyDesc').innerHTML = '<a href="' + story.linkedinUrl + '" target="_blank" style="color:var(--accent);">View on LinkedIn ↗</a>';
+    renderTweetEmbed(null);
   } else {
     document.getElementById('storyTitle').style.display = '';
     document.getElementById('storyTitle').textContent = story.title;
@@ -2050,6 +2059,7 @@ function adminCartToBary(px, py, verts) {
 function adminStoryLabel(story) {
   if (story.title && story.title.trim()) return story.title.trim();
   if (story.tweetUrl) return '🐦 ' + story.tweetUrl.replace(/^https?:\/\/(www\.)?/, '').substring(0, 60);
+  if (story.linkedinUrl) return '💼 ' + story.linkedinUrl.replace(/^https?:\/\/(www\.)?/, '').substring(0, 60);
   if (story.desc) return story.desc.substring(0, 60);
   return '[Untitled]';
 }
@@ -2302,6 +2312,9 @@ function handleSubmitTypeChange() {
   if (type === 'xpost') {
     contentLabel.textContent = 'X / Twitter Link';
     contentArea.placeholder = 'Paste the X/Twitter post URL...';
+  } else if (type === 'linkedin') {
+    contentLabel.textContent = 'LinkedIn Post Link';
+    contentArea.placeholder = 'Paste the LinkedIn post URL...';
   } else if (type === 'url') {
     contentLabel.textContent = 'Article URL';
     contentArea.placeholder = 'Paste the article URL...';
