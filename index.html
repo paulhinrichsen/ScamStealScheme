@@ -951,8 +951,9 @@
           </div>
         </div>
 
-        <button class="form-btn" onclick="submitStory()">Submit for Review</button>
+        <button class="form-btn" id="btnSubmitStory" onclick="submitStory()">Submit for Review</button>
         <div class="success-msg" id="submitSuccess">Ploy submitted. We'll review it.</div>
+        <div class="error-msg" id="submitError" style="display:none;margin-top:10px;"></div>
       </div>
     </div>
   </div>
@@ -985,7 +986,7 @@
   <div class="tab-page" id="page-admin">
 
     <!-- SET OWNER PLOT -->
-    <div class="admin-section">
+    <div class="admin-section" id="adminOwnerPlotSection">
       <h3>Set Owner Plot</h3>
       <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:14px;">Click the triangle to set your official answer for each story.</p>
       <div style="margin-bottom:14px;">
@@ -1195,6 +1196,7 @@ async function loadStories() {
         desc: data.description,
         source: data.source || null,
         tweetUrl: data.source === 'xpost' ? extractTweetUrl(data.description) : null,
+        ownerPlotSet: data.ownerPlotSet || false,
         ownerPlot: {
           scam: (official.scam || 0) / 100,
           steal: (official.steal || 0) / 100,
@@ -1499,12 +1501,15 @@ function matchClass(pct) {
 async function submitVote() {
   if (!plotPoint) return;
   const story = stories[currentStoryIdx];
+  if (!story) return;
+  // Guard against double-submit (rapid double-click or re-entry)
+  if (myVotes[story.id]) return;
+  myVotes[story.id] = true;  // claim the slot immediately
+  saveMyVotes();
+  document.getElementById('btnVote').disabled = true;
 
   if (!votesCache[story.id]) votesCache[story.id] = [];
   votesCache[story.id].push({ userId: visitorId, scam: plotPoint.scam, steal: plotPoint.steal, scheme: plotPoint.scheme, ts: Date.now() });
-
-  myVotes[story.id] = true;
-  saveMyVotes();
 
   userData.votes++;
   const ownerPct = calcMatch(plotPoint, story.ownerPlot);
@@ -1529,17 +1534,12 @@ async function submitVote() {
   drawTriangle();
   updateUserRankDisplay();
 
-  // Show share image modal
-  showShareModal(generateShareImage(plotPoint));
-
-  // Auto-advance to next unanswered ploy after modal is closed (or after 2s if no remaining)
-  const remaining = stories.filter(s => !myVotes[s.id]);
-  if (remaining.length > 0) {
-    setTimeout(() => {
-      advanceToNextUnanswered();
-      loadStory();
-    }, 2000);
-  }
+  // Show share image modal — auto-advance happens when user closes it
+  const hasRemaining = stories.some(s => !myVotes[s.id]);
+  showShareModal(generateShareImage(plotPoint), hasRemaining ? () => {
+    advanceToNextUnanswered();
+    loadStory();
+  } : null);
 }
 
 // ═══════════════════════════════════════════════
@@ -1840,20 +1840,64 @@ async function recoverAccount() {
 // ═══════════════════════════════════════════════
 // SUBMIT A PLOY
 // ═══════════════════════════════════════════════
+function showSubmitError(msg) {
+  const el = document.getElementById('submitError');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
 async function submitStory() {
   const type = document.getElementById('submitType').value;
   const title = type === 'xpost' ? '' : document.getElementById('submitTitle').value.trim();
   const content = document.getElementById('submitContent').value.trim();
   if ((type !== 'xpost' && !title) || !content) return;
 
-  if (!firebaseAvailable) {
-    document.getElementById('submitSuccess').textContent = 'Submissions require an internet connection.';
-    document.getElementById('submitSuccess').style.display = 'block';
-    setTimeout(() => { document.getElementById('submitSuccess').style.display = 'none'; }, 3000);
+  // Basic content quality check
+  if (content.length < 10) {
+    showSubmitError('Too short — add more detail.');
     return;
   }
 
+  if (!firebaseAvailable) {
+    showSubmitError('Submissions require an internet connection.');
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmitStory');
+  btn.disabled = true;
+
   try {
+    const contentKey = content.toLowerCase().trim();
+
+    // 1. Duplicate check — same content already in submissions or live stories
+    const [subSnap, storySnap] = await Promise.all([
+      db.collection('submissions').where('content', '==', content).limit(1).get(),
+      db.collection('stories').where('description', '==', content).limit(1).get()
+    ]);
+    if (!subSnap.empty || !storySnap.empty) {
+      showSubmitError('This ploy has already been submitted.');
+      btn.disabled = false;
+      return;
+    }
+
+    // 2. Rate limit — max 3 pending submissions per user per 24 hours
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const recentSnap = await db.collection('submissions')
+      .where('submittedBy', '==', visitorId)
+      .where('status', '==', 'pending')
+      .get();
+    const recentCount = recentSnap.docs.filter(d => {
+      const ts = d.data().ts;
+      return ts && ts.toDate && ts.toDate() > oneDayAgo;
+    }).length;
+    if (recentCount >= 3) {
+      showSubmitError('You\'ve submitted 3 ploys in the last 24 hours. Come back tomorrow.');
+      btn.disabled = false;
+      return;
+    }
+
+    // All checks passed — submit
     const submissionData = {
       type, title, content,
       submittedBy: visitorId,
@@ -1875,13 +1919,15 @@ async function submitStory() {
     if (submitPlotPoint) {
       const capturedPlot = { ...submitPlotPoint };
       showShareModal(generateShareImage(capturedPlot));
-      // Reset submit triangle
       submitPlotPoint = null;
       document.getElementById('submitCoordDisplay').innerHTML = '<span class="submit-coord-hint">Tap the triangle to plot your answer</span>';
       drawSubmitTriangle();
     }
   } catch(e) {
     console.error('Failed to submit story:', e);
+    showSubmitError('Something went wrong. Please try again.');
+  } finally {
+    btn.disabled = false;
   }
 }
 
@@ -2015,11 +2061,22 @@ function adminStoryLabel(story) {
 }
 
 function renderAdminOwnerPlots() {
-  // Populate story selector
   const select = document.getElementById('adminStorySelect');
+  const plotSection = document.getElementById('adminOwnerPlotSection');
   if (!select) return;
+
+  // Only show stories that haven't had their owner plot set yet
+  const unplotted = stories.filter(s => !s.ownerPlotSet);
+
+  if (!unplotted.length) {
+    if (plotSection) plotSection.style.display = 'none';
+    return;
+  }
+  if (plotSection) plotSection.style.display = '';
+
   select.innerHTML = '';
-  stories.forEach((story, idx) => {
+  unplotted.forEach(story => {
+    const idx = stories.indexOf(story); // keep real stories[] index as value
     const opt = document.createElement('option');
     opt.value = idx;
     opt.textContent = adminStoryLabel(story);
@@ -2033,7 +2090,9 @@ function renderAdminOwnerPlots() {
   adminCtx = setup.ctx;
   adminTriVerts = setup.verts;
 
-  adminSelectedStoryIdx = 0;
+  // Default to first unplotted story
+  adminSelectedStoryIdx = unplotted.length > 0 ? stories.indexOf(unplotted[0]) : 0;
+  select.value = adminSelectedStoryIdx;
   adminPlotPoint = null;
   adminSelectStory();
 
@@ -2083,27 +2142,27 @@ async function adminSaveOwnerPlotFromTriangle() {
   const scheme = 100 - scam - steal; // ensure adds to 100
 
   story.ownerPlot = { scam: scam/100, steal: steal/100, scheme: scheme/100 };
+  story.ownerPlotSet = true;
 
   if (firebaseAvailable) {
     try {
       await db.collection('stories').doc(story.id).update({
-        official: { scam, steal, scheme }
+        official: { scam, steal, scheme },
+        ownerPlotSet: true
       });
     } catch(e) { console.error('Failed to save owner plot:', e); }
   }
 
   const msgEl = document.getElementById('adminOwnerPlotMsg');
   msgEl.className = 'admin-msg success'; msgEl.style.display = 'block';
-  msgEl.textContent = 'Saved ✓ — ' + story.title;
+  msgEl.textContent = 'Saved ✓ — ' + adminStoryLabel(story);
   setTimeout(() => { msgEl.style.display = 'none'; }, 2000);
 
-  // Update dropdown text
-  const select = document.getElementById('adminStorySelect');
-  select.options[adminSelectedStoryIdx].textContent = adminStoryLabel(story);
-
   adminPlotPoint = null;
-  drawAdminTriangle(adminCanvas, adminCtx, adminTriVerts, null, story.ownerPlot);
   drawTriangle();
+
+  // Remove this story from the queue and re-render the selector
+  renderAdminOwnerPlots();
 }
 
 // ── Admin: render pending submissions ──
@@ -2272,7 +2331,11 @@ let submitPlotPoint = null;
 
 function resizeSubmitCanvas() {
   const rect = submitTriCanvas.parentElement.getBoundingClientRect();
-  if (!rect.width) return;
+  if (!rect.width || !rect.height) {
+    // Container not visible yet — retry once layout settles
+    setTimeout(resizeSubmitCanvas, 150);
+    return;
+  }
   const dpr = window.devicePixelRatio || 1;
   submitTriCanvas.width = rect.width * dpr;
   submitTriCanvas.height = rect.height * dpr;
@@ -2459,14 +2522,21 @@ function generateShareImage(pp) {
   return off.toDataURL('image/png');
 }
 
-function showShareModal(dataUrl) {
+let _shareModalOnClose = null;
+function showShareModal(dataUrl, onClose) {
   currentShareDataUrl = dataUrl;
+  _shareModalOnClose = onClose || null;
   document.getElementById('shareImgPreview').src = dataUrl;
   document.getElementById('shareModal').classList.add('show');
 }
 
 function closeShareModal() {
   document.getElementById('shareModal').classList.remove('show');
+  if (_shareModalOnClose) {
+    const cb = _shareModalOnClose;
+    _shareModalOnClose = null;
+    cb();
+  }
 }
 
 function downloadShareImage() {
@@ -2497,19 +2567,25 @@ function renderAdminPanel() {
 // ═══════════════════════════════════════════════
 async function init() {
   visitorId = getOrCreateVisitorId();
-  loadMyVotes();
+  try { loadMyVotes(); } catch(e) { myVotes = {}; }
 
-  const [loadedStories, loadedUserData] = await Promise.all([
-    loadStories(),
-    loadUserData()
-  ]);
+  let loadedStories = [], loadedUserData = { name: 'anonymous', phraseHash: null, votes: 0, matchOwner: [], matchPublic: [] };
+  try {
+    [loadedStories, loadedUserData] = await Promise.all([loadStories(), loadUserData()]);
+  } catch(e) {
+    console.warn('Failed to load initial data:', e);
+  }
 
   stories = loadedStories;
   userData = loadedUserData;
 
-  await Promise.all(stories.map(async story => {
-    votesCache[story.id] = await loadVotesForStory(story.id);
-  }));
+  try {
+    await Promise.all(stories.map(async story => {
+      votesCache[story.id] = await loadVotesForStory(story.id);
+    }));
+  } catch(e) {
+    console.warn('Failed to load some vote data:', e);
+  }
 
   // Start with first unanswered story (newest first)
   currentStoryIdx = findCurrentQueueIdx();
@@ -2668,6 +2744,7 @@ async function adminPublishStory() {
       source: sub.type,
       submittedBy: sub.submittedBy || null,
       submitterPlot: sub.submitterPlot || null,
+      ownerPlotSet: true,
       ts: firebase.firestore.FieldValue.serverTimestamp()
     });
     await db.collection('submissions').doc(pendingApproveSubId).update({ status: 'approved' });
