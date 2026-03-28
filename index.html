@@ -820,29 +820,7 @@
       <div id="adminLiveStories"></div>
     </div>
 
-    <!-- ADD NEW STORY -->
-    <div class="admin-section">
-      <h3>Add New Story</h3>
-      <div class="admin-add-story">
-        <input type="text" id="adminNewTitle" placeholder="Story title">
-        <textarea id="adminNewDesc" placeholder="Story description..."></textarea>
-        <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:8px;font-family:'Space Mono',monospace;">Click triangle to set owner plot:</p>
-        <div class="admin-plot-layout">
-          <div class="admin-triangle-container">
-            <canvas id="adminNewTriangleCanvas" class="triangle-canvas" style="cursor:crosshair;"></canvas>
-          </div>
-          <div class="admin-plot-info">
-            <div class="coord-display">
-              <div class="coord-pill scam" id="adminNewCoordScam">SCAM 0%</div>
-              <div class="coord-pill steal" id="adminNewCoordSteal">STEAL 0%</div>
-              <div class="coord-pill scheme" id="adminNewCoordScheme">SCHEME 0%</div>
-            </div>
-          </div>
-        </div>
-        <button class="admin-btn primary" onclick="adminAddStory()" style="width:100%;padding:12px;margin-top:12px;">Add Story (Live)</button>
-        <div class="admin-msg" id="adminAddMsg"></div>
-      </div>
-    </div>
+    <!-- ADD NEW STORY section removed — use Submit a Ploy instead -->
 
   </div>
 
@@ -1737,8 +1715,7 @@ function getRankWithAdmin(votes, avgOwnerMatch, name) {
 // ── Admin: triangle-based owner plot picker ──
 let adminCanvas = null, adminCtx = null, adminTriVerts = null;
 let adminPlotPoint = null, adminSelectedStoryIdx = 0;
-let adminNewCanvas = null, adminNewCtx = null, adminNewTriVerts = null;
-let adminNewPlotPoint = null;
+// adminNew* variables removed — Add New Story section removed
 
 function setupAdminTriangle(cvs, ctxRef, vertsRef) {
   const rect = cvs.parentElement.getBoundingClientRect();
@@ -1947,12 +1924,30 @@ async function renderAdminPending() {
       const d = doc.data();
       const div = document.createElement('div');
       div.className = 'admin-story-item';
+
+      // Refinement badge
+      let refineBadge = '';
+      if (d.refined === true) {
+        refineBadge = '<span style="background:var(--cyan);color:#000;font-size:0.65rem;padding:2px 6px;border-radius:3px;margin-left:6px;font-weight:700;">AI REFINED</span>';
+      } else if (d.refined === false && d.refineError) {
+        refineBadge = '<span style="background:var(--orange);color:#000;font-size:0.65rem;padding:2px 6px;border-radius:3px;margin-left:6px;font-weight:700;">RAW</span>';
+      }
+
+      // Toggle button for original vs refined (only if refined)
+      let toggleBtn = '';
+      if (d.refined === true && d.originalContent) {
+        toggleBtn = `<button class="admin-btn" style="font-size:0.65rem;padding:2px 8px;" onclick="adminToggleOriginal(this, '${doc.id}')">Show Original</button>`;
+      }
+
+      const displayContent = d.content || '';
       div.innerHTML = `
         <div class="admin-story-info">
-          <div class="title">${escHtml(d.title)}</div>
-          <div class="meta">${escHtml(d.type)} · ${escHtml(d.content ? d.content.substring(0, 120) : '')}${d.content && d.content.length > 120 ? '…' : ''}</div>
+          <div class="title">${escHtml(d.title)}${refineBadge}</div>
+          <div class="meta">${escHtml(d.type)} · <span class="admin-content-preview" data-id="${doc.id}" data-refined="${escHtml(displayContent)}" data-original="${escHtml(d.originalContent || displayContent)}">${escHtml(displayContent.substring(0, 200))}${displayContent.length > 200 ? '…' : ''}</span></div>
+          ${d.refined === true && d.originalTitle && d.originalTitle !== d.title ? '<div class="meta" style="opacity:0.5;font-size:0.7rem;">Original title: ' + escHtml(d.originalTitle) + '</div>' : ''}
         </div>
         <div class="admin-btns">
+          ${toggleBtn}
           <button class="admin-btn approve" onclick="adminApproveSubmission('${doc.id}', this)">Approve</button>
           <button class="admin-btn reject" onclick="adminRejectSubmission('${doc.id}', this)">Reject</button>
         </div>
@@ -1963,6 +1958,15 @@ async function renderAdminPending() {
     console.error('Failed to load pending submissions:', e);
     container.innerHTML = '<p style="color:var(--orange);font-size:0.85rem;">Failed to load.</p>';
   }
+}
+
+function adminToggleOriginal(btn, docId) {
+  const preview = document.querySelector(`.admin-content-preview[data-id="${docId}"]`);
+  if (!preview) return;
+  const showingRefined = btn.textContent === 'Show Original';
+  const text = showingRefined ? preview.dataset.original : preview.dataset.refined;
+  preview.textContent = text.substring(0, 200) + (text.length > 200 ? '…' : '');
+  btn.textContent = showingRefined ? 'Show Refined' : 'Show Original';
 }
 
 async function adminApproveSubmission(subId, btnEl) {
@@ -2053,101 +2057,12 @@ async function adminDeleteStory(storyId, btnEl) {
   renderAdminOwnerPlots();
 }
 
-// ── Admin: add new story ──
-function setupAdminNewTriangle() {
-  adminNewCanvas = document.getElementById('adminNewTriangleCanvas');
-  if (!adminNewCanvas) return;
-  const setup = setupAdminTriangle(adminNewCanvas);
-  adminNewCtx = setup.ctx;
-  adminNewTriVerts = setup.verts;
-  adminNewPlotPoint = null;
-  drawAdminTriangle(adminNewCanvas, adminNewCtx, adminNewTriVerts, null, null);
-
-  adminNewCanvas.onclick = function(e) {
-    const rect = adminNewCanvas.getBoundingClientRect();
-    const px = e.clientX - rect.left, py = e.clientY - rect.top;
-    const b = adminCartToBary(px, py, adminNewTriVerts);
-    if (b.scam < -0.02 || b.steal < -0.02 || b.scheme < -0.02) return;
-    adminNewPlotPoint = b;
-    document.getElementById('adminNewCoordScam').textContent = 'SCAM ' + Math.round(b.scam*100) + '%';
-    document.getElementById('adminNewCoordSteal').textContent = 'STEAL ' + Math.round(b.steal*100) + '%';
-    document.getElementById('adminNewCoordScheme').textContent = 'SCHEME ' + Math.round(b.scheme*100) + '%';
-    drawAdminTriangle(adminNewCanvas, adminNewCtx, adminNewTriVerts, adminNewPlotPoint, null);
-  };
-}
-
-async function adminAddStory() {
-  const title = document.getElementById('adminNewTitle').value.trim();
-  const desc = document.getElementById('adminNewDesc').value.trim();
-  const msgEl = document.getElementById('adminAddMsg');
-
-  if (!title || !desc) {
-    msgEl.className = 'admin-msg error'; msgEl.style.display = 'block';
-    msgEl.textContent = 'Title and description required.';
-    return;
-  }
-  if (!adminNewPlotPoint) {
-    msgEl.className = 'admin-msg error'; msgEl.style.display = 'block';
-    msgEl.textContent = 'Click the triangle to set the owner plot.';
-    return;
-  }
-
-  const scam = Math.round(adminNewPlotPoint.scam * 100);
-  const steal = Math.round(adminNewPlotPoint.steal * 100);
-  const scheme = 100 - scam - steal;
-
-  // Auto-detect tweet URLs
-  const detectedTweetUrl = extractTweetUrl(desc);
-  const source = detectedTweetUrl ? 'xpost' : 'text';
-
-  const newStory = {
-    title, description: desc,
-    status: 'live',
-    source,
-    official: { scam, steal, scheme },
-    ts: firebase.firestore.FieldValue.serverTimestamp()
-  };
-
-  let newId = 'local_' + Date.now();
-  if (firebaseAvailable) {
-    try {
-      const docRef = await db.collection('stories').add(newStory);
-      newId = docRef.id;
-    } catch(e) { console.error('Failed to add story:', e); }
-  }
-
-  const localStory = {
-    id: newId, title, desc,
-    source,
-    tweetUrl: detectedTweetUrl,
-    ownerPlot: { scam: scam/100, steal: steal/100, scheme: scheme/100 }
-  };
-  stories.unshift(localStory);
-  votesCache[newId] = [];
-  currentStoryIdx = findCurrentQueueIdx();
-  loadStory();
-
-  document.getElementById('adminNewTitle').value = '';
-  document.getElementById('adminNewDesc').value = '';
-  adminNewPlotPoint = null;
-  document.getElementById('adminNewCoordScam').textContent = 'SCAM 0%';
-  document.getElementById('adminNewCoordSteal').textContent = 'STEAL 0%';
-  document.getElementById('adminNewCoordScheme').textContent = 'SCHEME 0%';
-  drawAdminTriangle(adminNewCanvas, adminNewCtx, adminNewTriVerts, null, null);
-
-  msgEl.className = 'admin-msg success'; msgEl.style.display = 'block';
-  msgEl.textContent = 'Story added ✓';
-  setTimeout(() => { msgEl.style.display = 'none'; }, 2000);
-
-  renderAdminOwnerPlots();
-  renderAdminLiveStories();
-}
+// ── Admin: add new story (removed — use Submit a Ploy instead) ──
 
 // ── Admin: render full panel ──
 function renderAdminPanel() {
   if (!isAdmin) return;
   renderAdminOwnerPlots();
-  setupAdminNewTriangle();
   renderAdminPending();
   renderAdminLiveStories();
 }
