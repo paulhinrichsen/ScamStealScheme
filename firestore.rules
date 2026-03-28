@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Stories: anyone can read, only admin can write
+    match /stories/{storyId} {
+      allow read: if true;
+      allow write: if false; // Manage via Firebase console or admin SDK
+
+      // Votes: anyone can read, anyone can write their own vote (one per visitor)
+      match /votes/{visitorId} {
+        allow read: if true;
+        allow create: if true;
+        allow update: if true;
+        // Prevent deleting votes
+        allow delete: if false;
+      }
+    }
+
+    // Submissions: anyone can create, only admin can read/update
+    match /submissions/{submissionId} {
+      allow create: if true;
+      allow read: if true;
+      allow update: if false;
+      allow delete: if false;
+    }
+  }
+}

@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Scam · Steal · Scheme</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --bg-deep: #0a0a12;
+    --bg-card: #12121e;
+    --bg-card-hover: #1a1a2e;
+    --pink: #ff2d78;
+    --pink-soft: #ff5c9a;
+    --pink-glow: rgba(255, 45, 120, 0.15);
+    --cyan: #00e5ff;
+    --cyan-soft: #4df0ff;
+    --cyan-glow: rgba(0, 229, 255, 0.15);
+    --gold: #ffd740;
+    --gold-soft: #ffe082;
+    --gold-glow: rgba(255, 215, 64, 0.15);
+    --purple: #b388ff;
+    --text-primary: #eee8f5;
+    --text-secondary: #8a839b;
+    --text-muted: #5a5470;
+    --border: rgba(255, 255, 255, 0.06);
+    --gradient-accent: linear-gradient(135deg, var(--pink) 0%, var(--cyan) 100%);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background:
+      radial-gradient(ellipse at 20% 0%, rgba(255, 45, 120, 0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(0, 229, 255, 0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 0 16px; }
+
+  /* Header */
+  .header { padding: 20px 0 12px; text-align: center; }
+  .logo {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800; font-size: 22px; letter-spacing: 0.5px;
+    background: var(--gradient-accent);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .logo-sub {
+    font-size: 11px; color: var(--text-muted);
+    letter-spacing: 3px; text-transform: uppercase; margin-top: 2px;
+  }
+
+  /* View toggle */
+  .view-toggle {
+    display: flex; gap: 4px; justify-content: center; margin: 10px 0;
+  }
+  .view-toggle-btn {
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500;
+    padding: 5px 14px; border-radius: 100px; cursor: pointer; transition: all 0.2s;
+  }
+  .view-toggle-btn.active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-glow); }
+  .view-toggle-btn:hover:not(.active) { border-color: var(--text-muted); }
+
+  /* Story Card */
+  .story-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 16px; padding: 20px; margin-top: 12px;
+    position: relative; overflow: hidden;
+  }
+  .story-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; background: var(--gradient-accent); opacity: 0.6;
+  }
+  .story-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .story-date { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+  .story-source {
+    font-size: 10px; color: var(--cyan); background: var(--cyan-glow);
+    padding: 2px 8px; border-radius: 100px; font-weight: 500;
+  }
+  .story-badge {
+    margin-left: auto; font-size: 10px; color: var(--pink);
+    background: var(--pink-glow); padding: 2px 8px; border-radius: 100px; font-weight: 600;
+  }
+  .story-title {
+    font-family: 'Outfit', sans-serif; font-size: 18px;
+    font-weight: 700; line-height: 1.3; margin-bottom: 8px;
+  }
+  .story-summary { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+
+  /* Story nav */
+  .story-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 14px; }
+  .story-nav-btn {
+    background: none; border: 1px solid var(--border); color: var(--text-secondary);
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; font-size: 16px;
+  }
+  .story-nav-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+  .story-nav-btn:disabled { opacity: 0.25; cursor: default; }
+  .story-nav-btn:disabled:hover { border-color: var(--border); color: var(--text-secondary); }
+  .story-counter { font-size: 12px; color: var(--text-muted); font-weight: 500; letter-spacing: 1px; }
+
+  /* Triangle */
+  .triangle-section { margin-top: 16px; position: relative; }
+  .triangle-prompt {
+    text-align: center; font-size: 13px; color: var(--text-secondary);
+    margin-bottom: 10px; transition: opacity 0.3s;
+  }
+  .triangle-prompt.hidden { opacity: 0; }
+  .triangle-prompt span { color: var(--cyan); font-weight: 500; }
+  .canvas-wrap { position: relative; width: 100%; aspect-ratio: 1 / 0.9; touch-action: none; }
+  canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
+
+  /* Confirm */
+  .confirm-btn {
+    display: none; width: 100%; padding: 14px; margin-top: 12px;
+    border: none; border-radius: 12px; font-family: 'Outfit', sans-serif;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    background: var(--gradient-accent); color: white;
+    letter-spacing: 0.5px; transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .confirm-btn.visible { display: block; }
+  .confirm-btn:active { transform: scale(0.98); }
+  .confirm-btn:hover { box-shadow: 0 4px 24px rgba(255,45,120,0.25), 0 4px 24px rgba(0,229,255,0.15); }
+
+  /* Results */
+  .results-panel { display: none; margin-top: 16px; animation: fadeSlideUp 0.4s ease; }
+  .results-panel.visible { display: block; }
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .results-header {
+    font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600;
+    color: var(--text-secondary); text-transform: uppercase;
+    letter-spacing: 2px; text-align: center; margin-bottom: 12px;
+  }
+  .result-row {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; margin-bottom: 8px;
+    animation: fadeSlideUp 0.4s ease; animation-fill-mode: both;
+  }
+  .result-row:nth-child(2) { animation-delay: 0.15s; }
+  .result-row:nth-child(3) { animation-delay: 0.3s; }
+  .result-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .result-dot.user { background: var(--cyan); box-shadow: 0 0 8px var(--cyan-glow); }
+  .result-dot.official { background: var(--pink); box-shadow: 0 0 8px var(--pink-glow); }
+  .result-dot.public { background: var(--gold); box-shadow: 0 0 8px var(--gold-glow); }
+  .result-label { font-size: 13px; font-weight: 500; flex: 1; }
+  .result-label small { display: block; font-size: 11px; color: var(--text-muted); font-weight: 400; margin-top: 1px; }
+  .result-pcts { display: flex; gap: 10px; font-size: 11px; color: var(--text-secondary); font-weight: 500; letter-spacing: 0.5px; }
+  .result-pcts .pct-scam { color: var(--pink-soft); }
+  .result-pcts .pct-scheme { color: var(--cyan-soft); }
+  .result-pcts .pct-steal { color: var(--gold-soft); }
+
+  .vote-count { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: 4px; letter-spacing: 0.5px; }
+
+  /* Queue dots */
+  .queue-status { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 20px; margin-bottom: 24px; }
+  .queue-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); transition: background 0.3s; }
+  .queue-dot.active { background: var(--cyan); }
+  .queue-dot.voted { background: var(--pink); }
+
+  /* Archive view */
+  .archive-view { display: none; margin-top: 12px; }
+  .archive-view.visible { display: block; }
+  .archive-item {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px; margin-bottom: 10px;
+    cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .archive-item:hover { border-color: rgba(255,255,255,0.12); }
+  .archive-item::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 2px; background: var(--gradient-accent); opacity: 0.3;
+  }
+  .archive-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .archive-date { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; }
+  .archive-votes {
+    margin-left: auto; font-size: 10px; color: var(--purple);
+    background: rgba(179, 136, 255, 0.12); padding: 2px 8px; border-radius: 100px; font-weight: 500;
+  }
+  .archive-title { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 600; line-height: 1.3; margin-bottom: 6px; }
+  .archive-bar {
+    display: flex; height: 4px; border-radius: 2px; overflow: hidden; gap: 2px; margin-top: 8px;
+  }
+  .archive-bar-seg { border-radius: 2px; }
+
+  /* Admin */
+  .admin-bar {
+    display: none; margin-top: 20px; padding: 16px;
+    background: var(--bg-card); border: 1px solid rgba(255,45,120,0.2); border-radius: 12px;
+  }
+  .admin-bar.visible { display: block; }
+  .admin-bar-title {
+    font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600;
+    color: var(--pink); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;
+  }
+  .admin-queue-item {
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .admin-queue-item:last-child { border-bottom: none; }
+  .admin-queue-title { font-size: 13px; font-weight: 500; flex: 1; }
+  .admin-queue-status {
+    font-size: 11px; padding: 3px 10px; border-radius: 100px; font-weight: 500;
+  }
+  .admin-queue-status.pending { color: var(--gold); background: var(--gold-glow); }
+  .admin-queue-status.live { color: #69f0ae; background: rgba(105,240,174,0.12); }
+  .admin-queue-status.submitted { color: var(--purple); background: rgba(179,136,255,0.12); }
+
+  /* Save button */
+  .save-btn {
+    display: none; width: 100%; padding: 12px; margin-top: 8px;
+    border: 1px solid var(--border); border-radius: 12px;
+    background: transparent; color: var(--text-secondary);
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px;
+  }
+  .save-btn.visible { display: block; }
+  .save-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* Submit FAB */
+  .submit-fab {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-secondary); font-family: 'Inter', sans-serif;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+    padding: 8px 14px; border-radius: 100px; cursor: pointer;
+    z-index: 100; transition: all 0.2s; display: flex; align-items: center; gap: 5px;
+  }
+  .submit-fab:hover { border-color: var(--pink); color: var(--pink); }
+  .submit-fab .fab-plus { font-size: 14px; font-weight: 700; }
+
+  /* Submit overlay */
+  .submit-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,10,18,0.92); backdrop-filter: blur(12px);
+    z-index: 200; flex-direction: column; align-items: center;
+    justify-content: center; padding: 24px;
+  }
+  .submit-overlay.visible { display: flex; }
+  .submit-box {
+    width: 100%; max-width: 400px; background: var(--bg-card);
+    border: 1px solid var(--border); border-radius: 16px; padding: 24px; position: relative;
+  }
+  .submit-close {
+    position: absolute; top: 12px; right: 16px; background: none;
+    border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; line-height: 1;
+  }
+  .submit-close:hover { color: var(--text-primary); }
+  .submit-title { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .submit-subtitle { font-size: 12px; color: var(--text-muted); margin-bottom: 20px; }
+  .submit-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+  .submit-tab {
+    flex: 1; padding: 8px 0; border: 1px solid var(--border); border-radius: 8px;
+    background: none; color: var(--text-muted); font-family: 'Inter', sans-serif;
+    font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .submit-tab.active { border-color: var(--cyan); color: var(--cyan); background: var(--cyan-glow); }
+  .submit-input {
+    width: 100%; padding: 12px 14px; background: var(--bg-deep);
+    border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 13px;
+    outline: none; transition: border-color 0.2s; resize: none;
+  }
+  .submit-input:focus { border-color: var(--cyan); }
+  .submit-input::placeholder { color: var(--text-muted); }
+  .submit-send {
+    width: 100%; margin-top: 14px; padding: 12px; border: none; border-radius: 10px;
+    background: var(--gradient-accent); color: white;
+    font-family: 'Outfit', sans-serif; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .submit-send:active { transform: scale(0.98); }
+  .submit-send:hover { box-shadow: 0 4px 20px rgba(255,45,120,0.25); }
+  .submit-success { display: none; text-align: center; padding: 20px 0; }
+  .submit-success.visible { display: block; }
+  .submit-success-icon { font-size: 36px; margin-bottom: 8px; }
+  .submit-success-text { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+
+  /* Locked overlay */
+  .locked-overlay {
+    display: none; position: absolute; inset: 0;
+    background: rgba(10,10,18,0.7); backdrop-filter: blur(3px);
+    border-radius: 16px; z-index: 5; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+  }
+  .locked-overlay.visible { display: flex; }
+  .locked-icon { font-size: 28px; }
+  .locked-text { font-size: 13px; color: var(--text-secondary); text-align: center; padding: 0 20px; line-height: 1.5; }
+
+  /* Scanlines */
+  .scanlines {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none; z-index: 9999;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.015) 2px, rgba(0,0,0,0.015) 4px);
+  }
+
+  /* Loading */
+  .loading-msg {
+    text-align: center; padding: 40px 0; color: var(--text-muted);
+    font-size: 13px; letter-spacing: 1px;
+  }
+
+  .bottom-space { height: 40px; }
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<div class="app">
+  <div class="header">
+    <div class="logo">SCAM &middot; STEAL &middot; SCHEME</div>
+    <div class="logo-sub">Where does it fall?</div>
+  </div>
+
+  <!-- View Toggle -->
+  <div class="view-toggle">
+    <button class="view-toggle-btn active" id="todayBtn" onclick="showView('today')">Today</button>
+    <button class="view-toggle-btn" id="archiveBtn" onclick="showView('archive')">Archive</button>
+  </div>
+
+  <!-- TODAY VIEW -->
+  <div id="todayView">
+    <div class="story-card" id="storyCard">
+      <div class="story-meta">
+        <span class="story-date" id="storyDate"></span>
+        <span class="story-source" id="storySource"></span>
+        <span class="story-badge" id="storyBadge"></span>
+      </div>
+      <div class="story-title" id="storyTitle">Loading...</div>
+      <div class="story-summary" id="storySummary">Loading story details...</div>
+      <div class="story-nav">
+        <button class="story-nav-btn" id="prevBtn" disabled>&lsaquo;</button>
+        <span class="story-counter" id="storyCounter">1 / 3</span>
+        <button class="story-nav-btn" id="nextBtn">&rsaquo;</button>
+      </div>
+    </div>
+
+    <div class="triangle-section">
+      <div class="triangle-prompt" id="trianglePrompt">Tap the triangle where <span>you</span> think it belongs</div>
+      <div class="canvas-wrap">
+        <canvas id="triCanvas"></canvas>
+      </div>
+    </div>
+
+    <button class="confirm-btn" id="confirmBtn">Lock In My Answer</button>
+
+    <div class="results-panel" id="resultsPanel">
+      <div class="results-header">Results</div>
+      <div class="result-row">
+        <div class="result-dot user"></div>
+        <div class="result-label">Your Pick<small>Where you placed it</small></div>
+        <div class="result-pcts" id="userPcts"></div>
+      </div>
+      <div class="result-row">
+        <div class="result-dot official"></div>
+        <div class="result-label">Official<small>The definitive answer</small></div>
+        <div class="result-pcts" id="officialPcts"></div>
+      </div>
+      <div class="result-row">
+        <div class="result-dot public"></div>
+        <div class="result-label">Public Average<small id="voteCountLabel">0 votes</small></div>
+        <div class="result-pcts" id="publicPcts"></div>
+      </div>
+    </div>
+
+    <div class="vote-count" id="voteCount"></div>
+    <button class="save-btn" id="saveBtn">Save Image</button>
+    <div class="queue-status" id="queueDots"></div>
+  </div>
+
+  <!-- ARCHIVE VIEW -->
+  <div class="archive-view" id="archiveView">
+    <div id="archiveList"><div class="loading-msg">Loading archive...</div></div>
+  </div>
+
+  <!-- Admin Panel -->
+  <div class="admin-bar" id="adminBar">
+    <div class="admin-bar-title">Admin Queue</div>
+    <div id="adminQueue"></div>
+  </div>
+
+  <div class="bottom-space"></div>
+</div>
+
+<!-- Submit FAB -->
+<button class="submit-fab" onclick="openSubmit()">
+  <span class="fab-plus">+</span> Submit Story
+</button>
+
+<!-- Submit Overlay -->
+<div class="submit-overlay" id="submitOverlay">
+  <div class="submit-box">
+    <button class="submit-close" onclick="closeSubmit()">&times;</button>
+    <div id="submitForm">
+      <div class="submit-title">Submit a Story</div>
+      <div class="submit-subtitle">Share something that belongs on the triangle</div>
+      <div class="submit-tabs">
+        <button class="submit-tab active" onclick="switchTab('xpost', this)">X Post</button>
+        <button class="submit-tab" onclick="switchTab('url', this)">URL</button>
+        <button class="submit-tab" onclick="switchTab('text', this)">Paste It</button>
+      </div>
+      <div id="submitInputWrap">
+        <input class="submit-input" id="submitInput" type="url" placeholder="Paste the X post link...">
+      </div>
+      <button class="submit-send" onclick="submitStory()">Submit for Review</button>
+    </div>
+    <div class="submit-success" id="submitSuccess">
+      <div class="submit-success-icon">&#10003;</div>
+      <div class="submit-success-text">Story submitted!<br>It's in the queue for review.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+// ═══════════════════════════════════════════
+// FIREBASE CONFIG — Replace with your values
+// ═══════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "YOUR_APP_ID"
+};
+
+// ─── Firebase Init ───
+let db = null;
+let firebaseReady = false;
+
+try {
+  if (FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY') {
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    firebaseReady = true;
+    console.log('Firebase connected');
+  } else {
+    console.log('Firebase not configured — running with mock data');
+  }
+} catch(e) {
+  console.warn('Firebase init failed, using mock data:', e);
+}
+
+// ─── Visitor ID (anonymous, persistent) ───
+let visitorId = localStorage.getItem('sss_visitor_id');
+if (!visitorId) {
+  visitorId = 'v_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+  localStorage.setItem('sss_visitor_id', visitorId);
+}
+
+// ─── Mock Data (used when Firebase not configured) ───
+const MOCK_STORIES = [
+  {
+    id: 'mock1',
+    date: 'MAR 28, 2026',
+    source: 'AP NEWS',
+    title: 'Fake FEMA Agents Collected Donations Door-to-Door After Tornado',
+    summary: 'Two men posing as FEMA agents went door-to-door in tornado-ravaged neighborhoods collecting cash donations for "disaster relief." They wore matching polo shirts with fake ID badges and collected over $14,000 before a resident recognized one from an unrelated fraud case.',
+    official: { scam: 75, scheme: 15, steal: 10 },
+    publicAvg: { scam: 68, scheme: 20, steal: 12 },
+    publicVotes: 847,
+    status: 'live'
+  },
+  {
+    id: 'mock2',
+    date: 'MAR 28, 2026',
+    source: 'REUTERS',
+    title: 'Crypto Exchange Vanishes Overnight With $230M in Customer Funds',
+    summary: 'A mid-size cryptocurrency exchange abruptly shut down its website and social media, leaving 45,000 users unable to access their funds. The CEO\'s identity appears to have been entirely fabricated. Blockchain analysis shows funds being moved through mixers within hours of the shutdown.',
+    official: { scam: 20, scheme: 55, steal: 25 },
+    publicAvg: { scam: 30, scheme: 45, steal: 25 },
+    publicVotes: 1203,
+    status: 'live'
+  },
+  {
+    id: 'mock3',
+    date: 'MAR 28, 2026',
+    source: 'LOCAL 5',
+    title: 'Hospital Employee Diverted Painkiller Shipments for 3 Years',
+    summary: 'A pharmacy technician at a regional hospital systematically rerouted incoming painkiller shipments to a storage unit, replacing them with placebos. The operation went undetected for three years, with the stolen medications sold on the black market netting an estimated $2.1M.',
+    official: { scam: 5, scheme: 35, steal: 60 },
+    publicAvg: { scam: 10, scheme: 30, steal: 60 },
+    publicVotes: 631,
+    status: 'live'
+  }
+];
+
+// ─── State ───
+let STORIES = [];
+let ALL_STORIES = []; // for archive
+let currentIndex = 0;
+let userPlacement = null;
+let revealed = false;
+let userVotes = {};
+let currentView = 'today';
+
+try {
+  const saved = localStorage.getItem('sss_votes');
+  if (saved) userVotes = JSON.parse(saved);
+} catch(e) {}
+
+// ─── Data Layer ───
+async function loadStories() {
+  if (!firebaseReady) {
+    STORIES = [...MOCK_STORIES];
+    ALL_STORIES = [...MOCK_STORIES];
+    return;
+  }
+
+  try {
+    // Load today's live stories
+    const snap = await db.collection('stories')
+      .where('status', '==', 'live')
+      .orderBy('createdAt', 'desc')
+      .limit(10)
+      .get();
+
+    const stories = [];
+    for (const doc of snap.docs) {
+      const d = doc.data();
+      // Compute live public average from votes subcollection
+      const votesSnap = await db.collection('stories').doc(doc.id).collection('votes').get();
+      let avgScam = 0, avgScheme = 0, avgSteal = 0, count = 0;
+      votesSnap.forEach(v => {
+        const vd = v.data();
+        avgScam += vd.scam; avgScheme += vd.scheme; avgSteal += vd.steal;
+        count++;
+      });
+      if (count > 0) {
+        avgScam = Math.round(avgScam / count);
+        avgScheme = Math.round(avgScheme / count);
+        avgSteal = Math.round(avgSteal / count);
+      }
+
+      stories.push({
+        id: doc.id,
+        date: d.date || new Date(d.createdAt?.toDate?.() || Date.now()).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase(),
+        source: d.source || 'SUBMITTED',
+        title: d.title,
+        summary: d.summary,
+        official: d.official || { scam: 33, scheme: 34, steal: 33 },
+        publicAvg: count > 0 ? { scam: avgScam, scheme: avgScheme, steal: avgSteal } : (d.official || { scam: 33, scheme: 34, steal: 33 }),
+        publicVotes: count,
+        status: d.status
+      });
+    }
+
+    STORIES = stories.length > 0 ? stories : [...MOCK_STORIES];
+
+    // Load all stories for archive
+    const allSnap = await db.collection('stories')
+      .where('status', '==', 'live')
+      .orderBy('createdAt', 'desc')
+      .get();
+    ALL_STORIES = [];
+    for (const doc of allSnap.docs) {
+      const d = doc.data();
+      const votesSnap = await db.collection('stories').doc(doc.id).collection('votes').get();
+      let avgScam = 0, avgScheme = 0, avgSteal = 0, count = 0;
+      votesSnap.forEach(v => {
+        const vd = v.data();
+        avgScam += vd.scam; avgScheme += vd.scheme; avgSteal += vd.steal;
+        count++;
+      });
+      if (count > 0) {
+        avgScam = Math.round(avgScam / count);
+        avgScheme = Math.round(avgScheme / count);
+        avgSteal = Math.round(avgSteal / count);
+      }
+      ALL_STORIES.push({
+        id: doc.id,
+        date: d.date || '',
+        source: d.source || 'SUBMITTED',
+        title: d.title,
+        summary: d.summary || '',
+        official: d.official || { scam: 33, scheme: 34, steal: 33 },
+        publicAvg: count > 0 ? { scam: avgScam, scheme: avgScheme, steal: avgSteal } : (d.official || { scam: 33, scheme: 34, steal: 33 }),
+        publicVotes: count,
+        status: d.status
+      });
+    }
+    if (ALL_STORIES.length === 0) ALL_STORIES = [...MOCK_STORIES];
+  } catch(e) {
+    console.warn('Firestore read failed:', e);
+    STORIES = [...MOCK_STORIES];
+    ALL_STORIES = [...MOCK_STORIES];
+  }
+}
+
+async function saveVoteToFirebase(storyId, pcts) {
+  if (!firebaseReady) return;
+  try {
+    await db.collection('stories').doc(storyId).collection('votes').doc(visitorId).set({
+      scam: pcts.scam,
+      scheme: pcts.scheme,
+      steal: pcts.steal,
+      votedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { console.warn('Vote save failed:', e); }
+}
+
+async function saveSubmissionToFirebase(type, content) {
+  if (!firebaseReady) return;
+  try {
+    await db.collection('submissions').add({
+      type: type,
+      content: content,
+      submittedBy: visitorId,
+      status: 'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch(e) { console.warn('Submission save failed:', e); }
+}
+
+// ─── Canvas Setup ───
+const canvas = document.getElementById('triCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const wrap = canvas.parentElement;
+  const rect = wrap.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  draw();
+}
+
+// ─── Triangle geometry ───
+function getTrianglePoints() {
+  const wrap = canvas.parentElement;
+  const w = wrap.getBoundingClientRect().width;
+  const h = wrap.getBoundingClientRect().height;
+  const pad = 60;
+  const triH = h - pad * 2;
+  const triW = Math.min(w - pad * 2, triH * 1.15);
+  const cx = w / 2;
+  const top = { x: cx, y: pad };
+  const left = { x: cx - triW / 2, y: pad + triH };
+  const right = { x: cx + triW / 2, y: pad + triH };
+  return { top, left, right };
+}
+
+// Barycentric coords: top=Scam, left=Steal, right=Scheme
+function cartToBarycentric(px, py) {
+  const { top: A, left: B, right: C } = getTrianglePoints();
+  const det = (B.y - C.y) * (A.x - C.x) + (C.x - B.x) * (A.y - C.y);
+  const l1 = ((B.y - C.y) * (px - C.x) + (C.x - B.x) * (py - C.y)) / det;
+  const l2 = ((C.y - A.y) * (px - C.x) + (A.x - C.x) * (py - C.y)) / det;
+  const l3 = 1 - l1 - l2;
+  return { scam: Math.max(0, l1), steal: Math.max(0, l2), scheme: Math.max(0, l3) };
+}
+
+function barycentricToCart(scam, scheme, steal) {
+  const { top: A, left: B, right: C } = getTrianglePoints();
+  const total = scam + scheme + steal;
+  const a = scam / total, t = steal / total, s = scheme / total;
+  return { x: a * A.x + t * B.x + s * C.x, y: a * A.y + t * B.y + s * C.y };
+}
+
+function isInsideTriangle(px, py) {
+  const b = cartToBarycentric(px, py);
+  return b.scheme >= -0.02 && b.scam >= -0.02 && b.steal >= -0.02;
+}
+
+function clampToTriangle(px, py) {
+  let b = cartToBarycentric(px, py);
+  b.scheme = Math.max(0, b.scheme);
+  b.scam = Math.max(0, b.scam);
+  b.steal = Math.max(0, b.steal);
+  return barycentricToCart(b.scam, b.scheme, b.steal);
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+// ─── Drawing ───
+function draw() {
+  const wrap = canvas.parentElement;
+  const w = wrap.getBoundingClientRect().width;
+  const h = wrap.getBoundingClientRect().height;
+  ctx.clearRect(0, 0, w, h);
+  const { top, left, right } = getTrianglePoints();
+
+  // Fill
+  ctx.beginPath();
+  ctx.moveTo(top.x, top.y); ctx.lineTo(left.x, left.y); ctx.lineTo(right.x, right.y);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(top.x, top.y, left.x, left.y);
+  grad.addColorStop(0, 'rgba(0, 229, 255, 0.04)');
+  grad.addColorStop(0.5, 'rgba(255, 45, 120, 0.04)');
+  grad.addColorStop(1, 'rgba(255, 215, 64, 0.04)');
+  ctx.fillStyle = grad; ctx.fill();
+
+  // Border
+  ctx.beginPath();
+  ctx.moveTo(top.x, top.y); ctx.lineTo(left.x, left.y); ctx.lineTo(right.x, right.y);
+  ctx.closePath();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'; ctx.lineWidth = 1.5; ctx.stroke();
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)'; ctx.lineWidth = 0.5;
+  for (let i = 1; i <= 4; i++) {
+    const t = i / 5;
+    const lx = lerp(top.x, left.x, t), ly = lerp(top.y, left.y, t);
+    const rx = lerp(top.x, right.x, t), ry = lerp(top.y, right.y, t);
+    ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(rx, ry); ctx.stroke();
+    const bx = lerp(left.x, right.x, t), by = lerp(left.y, right.y, t);
+    ctx.beginPath(); ctx.moveTo(top.x, top.y); ctx.lineTo(bx, by); ctx.stroke();
+  }
+
+  // Labels
+  const triSize = Math.hypot(right.x - left.x, right.y - left.y);
+  const labelSize = Math.max(14, Math.min(24, triSize * 0.08));
+  ctx.font = `800 ${labelSize}px Outfit, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ff5c9a'; ctx.fillText('SCAM', top.x, top.y - 14);
+  ctx.fillStyle = '#ffd740'; ctx.fillText('STEAL', left.x, left.y + labelSize + 8);
+  ctx.fillStyle = '#00e5ff'; ctx.fillText('SCHEME', right.x, right.y + labelSize + 8);
+
+  if (STORIES.length === 0) return;
+  const story = STORIES[currentIndex];
+
+  if (revealed) {
+    const offPos = barycentricToCart(story.official.scam, story.official.scheme, story.official.steal);
+    drawDot(offPos.x, offPos.y, '#ff2d78', 'rgba(255, 45, 120, 0.3)', 9);
+    drawLabel(offPos.x, offPos.y, 'OFFICIAL', '#ff2d78', -18);
+
+    const pubPos = barycentricToCart(story.publicAvg.scam, story.publicAvg.scheme, story.publicAvg.steal);
+    drawDot(pubPos.x, pubPos.y, '#ffd740', 'rgba(255, 215, 64, 0.3)', 8);
+    drawLabel(pubPos.x, pubPos.y, 'PUBLIC', '#ffd740', 16);
+
+    if (userPlacement) {
+      drawDot(userPlacement.x, userPlacement.y, '#00e5ff', 'rgba(0, 229, 255, 0.3)', 8);
+      drawLabel(userPlacement.x, userPlacement.y, 'YOU', '#00e5ff', -18);
+    }
+  } else if (userPlacement) {
+    drawDot(userPlacement.x, userPlacement.y, '#00e5ff', 'rgba(0, 229, 255, 0.35)', 9);
+    ctx.beginPath(); ctx.arc(userPlacement.x, userPlacement.y, 14, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.2)'; ctx.lineWidth = 1.5; ctx.stroke();
+  }
+}
+
+function drawDot(x, y, color, glow, r) {
+  ctx.beginPath(); ctx.arc(x, y, r + 6, 0, Math.PI * 2); ctx.fillStyle = glow; ctx.fill();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+  ctx.beginPath(); ctx.arc(x - r * 0.2, y - r * 0.2, r * 0.35, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.25)'; ctx.fill();
+}
+
+function drawLabel(x, y, text, color, offsetY) {
+  ctx.font = '600 9px Outfit'; ctx.textAlign = 'center';
+  ctx.fillStyle = color; ctx.fillText(text, x, y + offsetY);
+}
+
+// ─── Interaction ───
+function handleCanvasInput(e) {
+  if (revealed) return;
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  let cx, cy;
+  if (e.touches) { cx = e.touches[0].clientX - rect.left; cy = e.touches[0].clientY - rect.top; }
+  else { cx = e.clientX - rect.left; cy = e.clientY - rect.top; }
+
+  userPlacement = isInsideTriangle(cx, cy) ? { x: cx, y: cy } : clampToTriangle(cx, cy);
+  document.getElementById('confirmBtn').classList.add('visible');
+  document.getElementById('trianglePrompt').classList.add('hidden');
+  draw();
+}
+
+canvas.addEventListener('pointerdown', handleCanvasInput);
+canvas.addEventListener('pointermove', (e) => { if (e.buttons > 0) handleCanvasInput(e); });
+
+// ─── Confirm & Reveal ───
+document.getElementById('confirmBtn').addEventListener('click', async () => {
+  if (!userPlacement || revealed) return;
+  revealed = true;
+  const story = STORIES[currentIndex];
+  const userBary = cartToBarycentric(userPlacement.x, userPlacement.y);
+  const total = userBary.scam + userBary.scheme + userBary.steal;
+  const userPct = {
+    scam: Math.round((userBary.scam / total) * 100),
+    scheme: Math.round((userBary.scheme / total) * 100),
+    steal: Math.round((userBary.steal / total) * 100)
+  };
+
+  userVotes[story.id] = userPct;
+  try { localStorage.setItem('sss_votes', JSON.stringify(userVotes)); } catch(e) {}
+  await saveVoteToFirebase(story.id, userPct);
+
+  document.getElementById('confirmBtn').classList.remove('visible');
+  document.getElementById('resultsPanel').classList.add('visible');
+  document.getElementById('saveBtn').classList.add('visible');
+  setPcts('userPcts', userPct);
+  setPcts('officialPcts', story.official);
+  setPcts('publicPcts', story.publicAvg);
+  document.getElementById('voteCountLabel').textContent = `${story.publicVotes.toLocaleString()} votes`;
+  updateQueueDots();
+  draw();
+});
+
+function setPcts(elId, pcts) {
+  document.getElementById(elId).innerHTML = `
+    <span class="pct-scam">${pcts.scam}%</span>
+    <span class="pct-scheme">${pcts.scheme}%</span>
+    <span class="pct-steal">${pcts.steal}%</span>
+  `;
+}
+
+// ─── Story Navigation ───
+function loadStory(index) {
+  if (STORIES.length === 0) return;
+  const story = STORIES[index];
+  currentIndex = index;
+  revealed = false;
+  userPlacement = null;
+
+  document.getElementById('storyDate').textContent = story.date;
+  document.getElementById('storySource').textContent = story.source;
+  document.getElementById('storyBadge').textContent = `${index + 1} of ${STORIES.length}`;
+  document.getElementById('storyTitle').textContent = story.title;
+  document.getElementById('storySummary').textContent = story.summary;
+  document.getElementById('storyCounter').textContent = `${index + 1} / ${STORIES.length}`;
+  document.getElementById('prevBtn').disabled = index === 0;
+  document.getElementById('nextBtn').disabled = index === STORIES.length - 1;
+  document.getElementById('confirmBtn').classList.remove('visible');
+  document.getElementById('resultsPanel').classList.remove('visible');
+  document.getElementById('saveBtn').classList.remove('visible');
+  document.getElementById('trianglePrompt').classList.remove('hidden');
+
+  if (userVotes[story.id]) {
+    revealed = true;
+    const uv = userVotes[story.id];
+    userPlacement = barycentricToCart(uv.scam, uv.scheme, uv.steal);
+    document.getElementById('resultsPanel').classList.add('visible');
+    document.getElementById('saveBtn').classList.add('visible');
+    document.getElementById('trianglePrompt').classList.add('hidden');
+    setPcts('userPcts', uv);
+    setPcts('officialPcts', story.official);
+    setPcts('publicPcts', story.publicAvg);
+    document.getElementById('voteCountLabel').textContent = `${story.publicVotes.toLocaleString()} votes`;
+  }
+
+  updateQueueDots();
+  draw();
+}
+
+document.getElementById('prevBtn').addEventListener('click', () => { if (currentIndex > 0) loadStory(currentIndex - 1); });
+document.getElementById('nextBtn').addEventListener('click', () => { if (currentIndex < STORIES.length - 1) loadStory(currentIndex + 1); });
+
+function updateQueueDots() {
+  const el = document.getElementById('queueDots');
+  el.innerHTML = STORIES.map((s, i) => {
+    const cls = i === currentIndex ? 'active' : (userVotes[s.id] ? 'voted' : '');
+    return `<div class="queue-dot ${cls}"></div>`;
+  }).join('');
+}
+
+// ─── View Toggle ───
+function showView(view) {
+  currentView = view;
+  document.getElementById('todayBtn').classList.toggle('active', view === 'today');
+  document.getElementById('archiveBtn').classList.toggle('active', view === 'archive');
+  document.getElementById('todayView').style.display = view === 'today' ? '' : 'none';
+  document.getElementById('archiveView').classList.toggle('visible', view === 'archive');
+  if (view === 'archive') renderArchive();
+}
+
+function renderArchive() {
+  const el = document.getElementById('archiveList');
+  if (ALL_STORIES.length === 0) {
+    el.innerHTML = '<div class="loading-msg">No stories yet</div>';
+    return;
+  }
+  el.innerHTML = ALL_STORIES.map((s, i) => {
+    const total = s.official.scam + s.official.scheme + s.official.steal;
+    const scamW = (s.official.scam / total * 100).toFixed(0);
+    const stealW = (s.official.steal / total * 100).toFixed(0);
+    const schemeW = (s.official.scheme / total * 100).toFixed(0);
+    const voted = userVotes[s.id] ? ' &middot; Voted' : '';
+    return `
+      <div class="archive-item" onclick="openArchiveStory(${i})">
+        <div class="archive-meta">
+          <span class="archive-date">${s.date}</span>
+          <span class="archive-votes">${s.publicVotes} votes${voted}</span>
+        </div>
+        <div class="archive-title">${s.title}</div>
+        <div class="archive-bar">
+          <div class="archive-bar-seg" style="flex:${scamW};background:var(--pink)"></div>
+          <div class="archive-bar-seg" style="flex:${stealW};background:var(--gold)"></div>
+          <div class="archive-bar-seg" style="flex:${schemeW};background:var(--cyan)"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openArchiveStory(i) {
+  STORIES = ALL_STORIES;
+  showView('today');
+  loadStory(i);
+}
+
+// ─── Save Image ───
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const expW = 1080, expH = 1350;
+  const exp = document.createElement('canvas');
+  exp.width = expW; exp.height = expH;
+  const ec = exp.getContext('2d');
+
+  const bgGrad = ec.createLinearGradient(0, 0, expW, expH);
+  bgGrad.addColorStop(0, '#0a0a12'); bgGrad.addColorStop(1, '#0f0f1e');
+  ec.fillStyle = bgGrad; ec.fillRect(0, 0, expW, expH);
+
+  ec.fillStyle = 'rgba(255,45,120,0.03)';
+  ec.beginPath(); ec.arc(200, 200, 300, 0, Math.PI * 2); ec.fill();
+  ec.fillStyle = 'rgba(0,229,255,0.03)';
+  ec.beginPath(); ec.arc(880, 1100, 300, 0, Math.PI * 2); ec.fill();
+
+  ec.font = '800 36px Outfit, sans-serif'; ec.textAlign = 'center';
+  const logoGrad = ec.createLinearGradient(340, 60, 740, 60);
+  logoGrad.addColorStop(0, '#ff2d78'); logoGrad.addColorStop(1, '#00e5ff');
+  ec.fillStyle = logoGrad;
+  ec.fillText('SCAM \u00B7 STEAL \u00B7 SCHEME', expW / 2, 70);
+
+  ec.font = '700 28px Outfit, sans-serif'; ec.fillStyle = '#eee8f5';
+  wrapText(ec, STORIES[currentIndex].title, expW / 2, 130, expW - 120, 36);
+
+  const triTop = { x: expW / 2, y: 240 };
+  const triH = 600, triW = triH * 1.15;
+  const triLeft = { x: expW / 2 - triW / 2, y: 240 + triH };
+  const triRight = { x: expW / 2 + triW / 2, y: 240 + triH };
+
+  ec.beginPath(); ec.moveTo(triTop.x, triTop.y); ec.lineTo(triLeft.x, triLeft.y); ec.lineTo(triRight.x, triRight.y); ec.closePath();
+  const tGrad = ec.createLinearGradient(triTop.x, triTop.y, triLeft.x, triLeft.y);
+  tGrad.addColorStop(0, 'rgba(0,229,255,0.06)'); tGrad.addColorStop(0.5, 'rgba(255,45,120,0.06)'); tGrad.addColorStop(1, 'rgba(255,215,64,0.06)');
+  ec.fillStyle = tGrad; ec.fill();
+  ec.strokeStyle = 'rgba(255,255,255,0.12)'; ec.lineWidth = 2; ec.stroke();
+
+  ec.font = '700 22px Outfit, sans-serif'; ec.textAlign = 'center';
+  ec.fillStyle = '#ff5c9a'; ec.fillText('SCAM', triTop.x, triTop.y - 16);
+  ec.fillStyle = '#ffd740'; ec.fillText('STEAL', triLeft.x, triLeft.y + 32);
+  ec.fillStyle = '#00e5ff'; ec.fillText('SCHEME', triRight.x, triRight.y + 32);
+
+  function expBaryToCart(scam, scheme, steal) {
+    const total = scam + scheme + steal;
+    const a = scam / total, t = steal / total, s = scheme / total;
+    return { x: a * triTop.x + t * triLeft.x + s * triRight.x, y: a * triTop.y + t * triLeft.y + s * triRight.y };
+  }
+
+  const story = STORIES[currentIndex];
+  const op = expBaryToCart(story.official.scam, story.official.scheme, story.official.steal);
+  expDot(ec, op.x, op.y, '#ff2d78', 14);
+  ec.font = '600 14px Outfit'; ec.fillStyle = '#ff2d78'; ec.fillText('OFFICIAL', op.x, op.y - 24);
+
+  const pp = expBaryToCart(story.publicAvg.scam, story.publicAvg.scheme, story.publicAvg.steal);
+  expDot(ec, pp.x, pp.y, '#ffd740', 12);
+  ec.font = '600 14px Outfit'; ec.fillStyle = '#ffd740'; ec.fillText('PUBLIC', pp.x, pp.y + 30);
+
+  if (userVotes[story.id]) {
+    const uv = userVotes[story.id];
+    const up = expBaryToCart(uv.scam, uv.scheme, uv.steal);
+    expDot(ec, up.x, up.y, '#00e5ff', 12);
+    ec.font = '600 14px Outfit'; ec.fillStyle = '#00e5ff'; ec.fillText('YOU', up.x, up.y - 24);
+  }
+
+  const ry = 920;
+  ec.font = '600 16px Outfit'; ec.textAlign = 'left';
+  ec.fillStyle = '#00e5ff'; ec.beginPath(); ec.arc(100, ry, 8, 0, Math.PI * 2); ec.fill();
+  ec.fillStyle = '#eee8f5'; ec.fillText('Your Pick', 120, ry + 5);
+  if (userVotes[story.id]) {
+    const uv = userVotes[story.id];
+    ec.fillStyle = '#8a839b'; ec.font = '500 14px Inter';
+    ec.fillText(`${uv.scam}% Scam \u00B7 ${uv.scheme}% Scheme \u00B7 ${uv.steal}% Steal`, 120, ry + 24);
+  }
+  ec.font = '600 16px Outfit';
+  ec.fillStyle = '#ff2d78'; ec.beginPath(); ec.arc(100, ry + 60, 8, 0, Math.PI * 2); ec.fill();
+  ec.fillStyle = '#eee8f5'; ec.fillText('Official', 120, ry + 65);
+  ec.fillStyle = '#8a839b'; ec.font = '500 14px Inter';
+  ec.fillText(`${story.official.scam}% Scam \u00B7 ${story.official.scheme}% Scheme \u00B7 ${story.official.steal}% Steal`, 120, ry + 84);
+  ec.font = '600 16px Outfit';
+  ec.fillStyle = '#ffd740'; ec.beginPath(); ec.arc(100, ry + 120, 8, 0, Math.PI * 2); ec.fill();
+  ec.fillStyle = '#eee8f5'; ec.fillText('Public Average', 120, ry + 125);
+  ec.fillStyle = '#8a839b'; ec.font = '500 14px Inter';
+  ec.fillText(`${story.publicAvg.scam}% Scam \u00B7 ${story.publicAvg.scheme}% Scheme \u00B7 ${story.publicAvg.steal}% Steal`, 120, ry + 144);
+  ec.fillText(`${story.publicVotes.toLocaleString()} votes`, 120, ry + 164);
+
+  ec.textAlign = 'center'; ec.fillStyle = '#5a5470'; ec.font = '500 14px Inter';
+  ec.fillText('scamstealscheme.com', expW / 2, expH - 30);
+
+  const link = document.createElement('a');
+  link.download = `sss-${story.title.slice(0, 30).replace(/[^a-zA-Z0-9]/g, '-')}.png`;
+  link.href = exp.toDataURL('image/png');
+  link.click();
+});
+
+function expDot(ec, x, y, color, r) {
+  ec.beginPath(); ec.arc(x, y, r + 8, 0, Math.PI * 2);
+  ec.fillStyle = color.replace(')', ', 0.2)').replace('rgb', 'rgba'); ec.fill();
+  ec.beginPath(); ec.arc(x, y, r, 0, Math.PI * 2);
+  ec.fillStyle = color; ec.fill();
+}
+
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(' ');
+  let line = '';
+  for (let i = 0; i < words.length; i++) {
+    const test = line + words[i] + ' ';
+    if (ctx.measureText(test).width > maxWidth && i > 0) {
+      ctx.fillText(line.trim(), x, y); line = words[i] + ' '; y += lineHeight;
+    } else { line = test; }
+  }
+  ctx.fillText(line.trim(), x, y);
+}
+
+// ─── Admin Mode ───
+if (new URLSearchParams(window.location.search).get('admin') === 'true') {
+  document.getElementById('adminBar').classList.add('visible');
+  loadAdminQueue();
+}
+
+async function loadAdminQueue() {
+  const aq = document.getElementById('adminQueue');
+
+  if (!firebaseReady) {
+    const allItems = [
+      ...MOCK_STORIES.map(s => ({ title: s.title, status: 'live' })),
+      { title: 'Mayor\'s Office No-Bid Contract Scheme', source: 'Twitter/X', status: 'pending' },
+      { title: 'Airline Miles Hack Drains Loyalty Accounts', source: 'RSS', status: 'pending' },
+    ];
+    aq.innerHTML = allItems.map(item => `
+      <div class="admin-queue-item">
+        <span class="admin-queue-title">${item.title}</span>
+        <span class="admin-queue-status ${item.status}">${item.status === 'live' ? 'Live' : 'Awaiting Official'}</span>
+      </div>
+    `).join('');
+    return;
+  }
+
+  try {
+    // Live stories
+    const liveSnap = await db.collection('stories').where('status', '==', 'live').orderBy('createdAt', 'desc').get();
+    const pendingSnap = await db.collection('stories').where('status', '==', 'pending').orderBy('createdAt', 'desc').get();
+    const submSnap = await db.collection('submissions').where('status', '==', 'pending').orderBy('createdAt', 'desc').get();
+
+    let html = '';
+    liveSnap.forEach(doc => {
+      html += `<div class="admin-queue-item"><span class="admin-queue-title">${doc.data().title}</span><span class="admin-queue-status live">Live</span></div>`;
+    });
+    pendingSnap.forEach(doc => {
+      html += `<div class="admin-queue-item"><span class="admin-queue-title">${doc.data().title}</span><span class="admin-queue-status pending">Awaiting Official</span></div>`;
+    });
+    submSnap.forEach(doc => {
+      const d = doc.data();
+      html += `<div class="admin-queue-item"><span class="admin-queue-title">[${d.type}] ${d.content.slice(0, 60)}...</span><span class="admin-queue-status submitted">Submitted</span></div>`;
+    });
+    aq.innerHTML = html || '<div style="color:var(--text-muted);font-size:12px">No items in queue</div>';
+  } catch(e) {
+    aq.innerHTML = '<div style="color:var(--text-muted);font-size:12px">Error loading queue</div>';
+  }
+}
+
+// ─── Submit Story ───
+let currentTab = 'xpost';
+
+function openSubmit() {
+  document.getElementById('submitOverlay').classList.add('visible');
+  document.getElementById('submitForm').style.display = '';
+  document.getElementById('submitSuccess').classList.remove('visible');
+}
+
+function closeSubmit() {
+  document.getElementById('submitOverlay').classList.remove('visible');
+}
+
+function switchTab(tab, el) {
+  currentTab = tab;
+  document.querySelectorAll('.submit-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const wrap = document.getElementById('submitInputWrap');
+  if (tab === 'text') {
+    wrap.innerHTML = '<textarea class="submit-input" id="submitInput" rows="4" placeholder="Paste or type the story here..."></textarea>';
+  } else if (tab === 'url') {
+    wrap.innerHTML = '<input class="submit-input" id="submitInput" type="url" placeholder="Paste the article URL...">';
+  } else {
+    wrap.innerHTML = '<input class="submit-input" id="submitInput" type="url" placeholder="Paste the X post link...">';
+  }
+}
+
+async function submitStory() {
+  const input = document.getElementById('submitInput');
+  const val = input.value.trim();
+  if (!val) { input.style.borderColor = 'var(--pink)'; return; }
+
+  // Save to localStorage as backup
+  let submissions = [];
+  try { submissions = JSON.parse(localStorage.getItem('sss_submissions') || '[]'); } catch(e) {}
+  submissions.push({ type: currentTab, content: val, timestamp: new Date().toISOString() });
+  localStorage.setItem('sss_submissions', JSON.stringify(submissions));
+
+  // Save to Firebase
+  await saveSubmissionToFirebase(currentTab, val);
+
+  document.getElementById('submitForm').style.display = 'none';
+  document.getElementById('submitSuccess').classList.add('visible');
+  setTimeout(() => closeSubmit(), 1800);
+}
+
+document.getElementById('submitOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeSubmit();
+});
+
+// ─── Init ───
+async function init() {
+  await loadStories();
+  loadStory(0);
+  resizeCanvas();
+  if (new URLSearchParams(window.location.search).get('admin') === 'true') {
+    loadAdminQueue();
+  }
+}
+
+window.addEventListener('resize', resizeCanvas);
+init();
+</script>
+</body>
+</html>
