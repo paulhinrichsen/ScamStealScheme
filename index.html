@@ -2889,7 +2889,7 @@ async function adminPublishStory() {
   btn.textContent = 'Publishing…';
   try {
     const sub = pendingApproveSubData;
-    await db.collection('stories').add({
+    const newStoryRef = await db.collection('stories').add({
       title: sub.title || sub.content?.substring(0, 80) || 'Untitled',
       description: sub.content,
       status: 'live',
@@ -2907,30 +2907,26 @@ async function adminPublishStory() {
     await db.collection('submissions').doc(pendingApproveSubId).update({ status: 'approved' });
 
     // Record the admin's plot as their vote on this story
-    const newStorySnap = await db.collection('stories')
-      .where('description', '==', sub.content).orderBy('ts', 'desc').limit(1).get();
-    if (!newStorySnap.empty) {
-      const newStoryId = newStorySnap.docs[0].id;
-      await saveVoteToFirebase(newStoryId, approvePlotPoint);
-      myVotes[newStoryId] = true;
-      saveMyVotes();
-      // Update votesCache so the Plot tab sees this vote immediately
-      if (!votesCache[newStoryId]) votesCache[newStoryId] = [];
-      votesCache[newStoryId].push({
-        userId: visitorId,
-        scam: approvePlotPoint.scam,
-        steal: approvePlotPoint.steal,
-        scheme: approvePlotPoint.scheme,
-        ts: Date.now()
-      });
-      // Update user vote count & match stats (100% match to own plot)
-      userData.votes++;
-      userData.matchOwner.push(100);
-      const publicAvg = getPublicAverage(newStoryId);
-      const publicPct = calcMatch(approvePlotPoint, publicAvg);
-      userData.matchPublic.push(publicPct);
-      await saveUserData();
-    }
+    const newStoryId = newStoryRef.id;
+    await saveVoteToFirebase(newStoryId, approvePlotPoint);
+    myVotes[newStoryId] = true;
+    saveMyVotes();
+    // Update votesCache so the Plot tab sees this vote immediately
+    if (!votesCache[newStoryId]) votesCache[newStoryId] = [];
+    votesCache[newStoryId].push({
+      userId: visitorId,
+      scam: approvePlotPoint.scam,
+      steal: approvePlotPoint.steal,
+      scheme: approvePlotPoint.scheme,
+      ts: Date.now()
+    });
+    // Update user vote count & match stats (100% match to own plot)
+    userData.votes++;
+    userData.matchOwner.push(100);
+    const publicAvg = getPublicAverage(newStoryId);
+    const publicPct = calcMatch(approvePlotPoint, publicAvg);
+    userData.matchPublic.push(publicPct);
+    await saveUserData();
 
     // Remove from pending queue in DOM
     if (sub._btnEl) {
