@@ -1702,7 +1702,8 @@ function renderStory() {
   const plotLayout = document.querySelector('.plot-layout');
   if (!stories.length) {
     if (storyCard) storyCard.style.display = 'none';
-    if (plotLayout) plotLayout.style.display = 'none';
+    if (plotLayout) plotLayout.style.display = '';
+    setTimeout(resizeCanvas, 50);
     return;
   }
   if (!stories[currentStoryIdx] || !anyUnanswered) {
@@ -1714,7 +1715,8 @@ function renderStory() {
       const statusEl = document.getElementById('storyStatus');
       statusEl.innerHTML = '✅ All ploys plotted! Check the <em>Leaderboard</em> to see your rank, or <em>Submit a Ploy</em> to add more.';
     }
-    if (plotLayout) plotLayout.style.display = 'none';
+    if (plotLayout) plotLayout.style.display = '';
+    setTimeout(resizeCanvas, 50);
     return;
   }
   if (storyCard) storyCard.style.display = '';
