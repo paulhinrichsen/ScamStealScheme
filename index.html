@@ -56,6 +56,20 @@
     font-style: normal;
     font-weight: 700;
   }
+  .hero-explainer {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    max-width: 440px;
+    margin: 8px auto 0;
+    line-height: 1.5;
+  }
+  .result-explainer {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-style: italic;
+  }
 
   /* ═══════════════════════════════════════════
      USER RANK BADGE (below slogan)
@@ -86,6 +100,7 @@
     background: var(--accent-dim);
   }
   .rank-emoji { font-size: 1.1rem; }
+  .rank-bar-label { font-size: 0.7rem; color: var(--text-dim); font-family: 'Space Mono', monospace; }
   .rank-name { color: var(--accent); }
   .rank-username { color: var(--text-dim); }
 
@@ -259,7 +274,7 @@
     margin: 0 auto;
   }
   .form-card {
-    background: var(--surface);
+    background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 28px;
@@ -366,7 +381,7 @@
 
   .leaderboard-table {
     width: 100%;
-    background: var(--surface);
+    background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 14px;
     overflow: hidden;
@@ -434,7 +449,7 @@
      RANK PROGRESS (shown on leaderboard)
      ═══════════════════════════════════════════ */
   .rank-progress-card {
-    background: var(--surface);
+    background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 20px 24px;
@@ -466,6 +481,38 @@
   .rank-step.achieved { opacity: 1; border-color: var(--accent); color: var(--text); }
   .rank-step.current { opacity: 1; border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
   .rank-step .step-emoji { font-size: 1rem; }
+  .rank-step .step-threshold { font-size: 0.65rem; color: var(--text-dim); margin-left: auto; }
+  .rank-score-explainer { font-size: 0.72rem; color: var(--text-dim); margin: 4px 0 10px; }
+  .account-toggle { display: flex; gap: 4px; margin-bottom: 16px; }
+  .acct-toggle-btn {
+    flex: 1; padding: 8px; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-dim); font-family: 'Space Mono', monospace; font-size: 0.75rem;
+    border-radius: 6px; cursor: pointer; transition: all 0.2s;
+  }
+  .acct-toggle-btn.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .btn-next-ploy {
+    background: var(--accent) !important; color: #000 !important; border-color: var(--accent) !important;
+    font-weight: 700; font-size: 1rem; padding: 12px 24px;
+    animation: pulseNext 1.5s ease-in-out infinite;
+  }
+  @keyframes pulseNext {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,255,0.4); }
+    50% { box-shadow: 0 0 16px 4px rgba(0,229,255,0.3); }
+  }
+  .site-footer {
+    text-align: center;
+    padding: 32px 20px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+  .site-footer a {
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .site-footer a:hover { color: var(--accent); }
 
   /* ═══════════════════════════════════════════
      ADMIN PANEL
@@ -850,11 +897,13 @@
     </svg>
   </div>
   <p class="slogan">Plot your <em>ploy</em> on the Scam Steal Scheme triangle.</p>
+  <p class="hero-explainer">Read a real story. Tap where it lands. See how you compare to the crowd and The Final Boss.</p>
 </div>
 
 <!-- USER RANK BADGE -->
 <div class="user-rank-bar">
-  <div class="rank-badge" onclick="switchTab('claim')" title="Claim your name">
+  <span class="rank-bar-label">Your rank:</span>
+  <div class="rank-badge" onclick="switchTab('account')" title="Claim or recover your name">
     <span class="rank-emoji" id="userRankEmoji">🐀</span>
     <span class="rank-name" id="userRankName">Snitch</span>
     <span class="rank-username" id="userBadge">anonymous</span>
@@ -865,10 +914,9 @@
      TAB BAR
      ════════════════════════════════════════════ -->
 <div class="tab-bar">
-  <button class="tab-btn active" data-tab="submit">Submit a Ploy</button>
-  <button class="tab-btn" data-tab="plot">Plot</button>
-  <button class="tab-btn" data-tab="claim">Claim Your Name</button>
-  <button class="tab-btn" data-tab="recover">Recover Account</button>
+  <button class="tab-btn" data-tab="submit">Submit a Ploy</button>
+  <button class="tab-btn active" data-tab="plot">Plot</button>
+  <button class="tab-btn" data-tab="account">Account</button>
   <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
   <button class="tab-btn admin-tab" data-tab="admin">Admin</button>
 </div>
@@ -879,7 +927,7 @@
 <div class="tab-content">
 
   <!-- ─── PLOT TAB ─── -->
-  <div class="tab-page" id="page-plot">
+  <div class="tab-page active" id="page-plot">
     <div class="story-card" id="storyCard" style="display:none;">
       <h2 id="storyTitle"></h2>
       <p class="story-desc" id="storyDesc"></p>
@@ -902,12 +950,13 @@
           </div>
           <button class="submit-vote" id="btnVote" disabled onclick="submitVote()">Plot your point</button>
           <div class="vote-result" id="voteResult">
+            <p class="result-explainer">How close your plot was:</p>
             <div class="result-row">
-              <span class="result-label">vs Boss</span>
+              <span class="result-label" title="How closely you matched the official answer">vs Boss</span>
               <span class="result-value" id="ownerMatch">—</span>
             </div>
             <div class="result-row">
-              <span class="result-label">vs Public</span>
+              <span class="result-label" title="How closely you matched the average of all votes">vs Public</span>
               <span class="result-value" id="publicMatch">—</span>
             </div>
             <div class="result-row">
@@ -915,49 +964,49 @@
               <span class="result-value" id="totalVotes">—</span>
             </div>
             <button class="vote-save-img-btn" id="btnSaveImg" onclick="showCurrentShareImage()">📸 Save Your Plot Image</button>
-            <button class="vote-save-img-btn" id="btnNextPloy" style="display:none;background:var(--accent);color:#000;border-color:var(--accent);font-weight:700;" onclick="goToNextPloy()">Next Ploy →</button>
+            <button class="vote-save-img-btn btn-next-ploy" id="btnNextPloy" style="display:none;" onclick="goToNextPloy()">Next Ploy →</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ─── CLAIM YOUR NAME TAB ─── -->
-  <div class="tab-page" id="page-claim">
+  <!-- ─── ACCOUNT TAB (Claim + Recover) ─── -->
+  <div class="tab-page" id="page-account">
     <div class="form-page">
       <div class="form-card">
-        <h2>Claim Your Name</h2>
-        <p class="form-desc">Pick a nickname for the leaderboard and a secret phrase to recover your account later. Don't forget the phrase — it's the only way back in.</p>
-        <label>Nickname</label>
-        <input type="text" id="inputNickname" placeholder="e.g. fraud_daddy_69" maxlength="24">
-        <div class="error-msg" id="nameError">Nickname already taken</div>
-        <label>Secret Phrase</label>
-        <input type="text" id="inputPhrase" placeholder="something only you'd say">
-        <button class="form-btn" onclick="claimName()">Lock it in</button>
-        <div class="success-msg" id="claimSuccess">Name claimed. You're on the board.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ─── RECOVER ACCOUNT TAB ─── -->
-  <div class="tab-page" id="page-recover">
-    <div class="form-page">
-      <div class="form-card">
-        <h2>Recover Account</h2>
-        <p class="form-desc">Enter your nickname and secret phrase to get your stats back on this device.</p>
-        <label>Nickname</label>
-        <input type="text" id="recoverNickname" placeholder="your nickname">
-        <label>Secret Phrase</label>
-        <input type="text" id="recoverPhrase" placeholder="your secret phrase">
-        <div class="error-msg" id="recoverError">Nickname or phrase doesn't match</div>
-        <button class="form-btn" onclick="recoverAccount()">Recover</button>
-        <div class="success-msg" id="recoverSuccess">Welcome back. Stats restored.</div>
+        <div class="account-toggle">
+          <button class="acct-toggle-btn active" onclick="toggleAccountMode('claim')">Claim Name</button>
+          <button class="acct-toggle-btn" onclick="toggleAccountMode('recover')">Recover Account</button>
+        </div>
+        <!-- Claim section -->
+        <div id="accountClaim">
+          <p class="form-desc">Pick a nickname and secret phrase for the leaderboard. Don't forget the phrase.</p>
+          <label>Nickname</label>
+          <input type="text" id="inputNickname" placeholder="e.g. fraud_daddy_69" maxlength="24">
+          <div class="error-msg" id="nameError">Nickname already taken</div>
+          <label>Secret Phrase</label>
+          <input type="text" id="inputPhrase" placeholder="something only you'd say">
+          <button class="form-btn" onclick="claimName()">Lock it in</button>
+          <div class="success-msg" id="claimSuccess">Name claimed. You're on the board.</div>
+        </div>
+        <!-- Recover section -->
+        <div id="accountRecover" style="display:none;">
+          <p class="form-desc">Enter your nickname and secret phrase to restore your stats.</p>
+          <label>Nickname</label>
+          <input type="text" id="recoverNickname" placeholder="your nickname">
+          <label>Secret Phrase</label>
+          <input type="text" id="recoverPhrase" placeholder="your secret phrase">
+          <div class="error-msg" id="recoverError">Nickname or phrase doesn't match</div>
+          <button class="form-btn" onclick="recoverAccount()">Recover</button>
+          <div class="success-msg" id="recoverSuccess">Welcome back. Stats restored.</div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ─── SUBMIT A PLOY TAB ─── -->
-  <div class="tab-page active" id="page-submit">
+  <div class="tab-page" id="page-submit">
     <div class="form-page">
       <div class="form-card">
         <h2>Submit a Ploy</h2>
@@ -994,6 +1043,7 @@
   <div class="tab-page" id="page-leaderboard">
     <div class="rank-progress-card">
       <h3>Your Rank Progress</h3>
+      <p class="rank-score-explainer">Score = (votes × 2) + avg Boss match. Current: <span id="currentScoreDisplay">0</span> pts</p>
       <div class="rank-ladder" id="rankLadder"></div>
     </div>
 
@@ -1345,6 +1395,12 @@ function switchTab(tabName) {
   if (tabName === 'admin') { renderAdminPanel(); }
 }
 
+function toggleAccountMode(mode) {
+  document.querySelectorAll('.acct-toggle-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().includes(mode)));
+  document.getElementById('accountClaim').style.display = mode === 'claim' ? '' : 'none';
+  document.getElementById('accountRecover').style.display = mode === 'recover' ? '' : 'none';
+}
+
 // ═══════════════════════════════════════════════
 // TRIANGLE RENDERING
 // ═══════════════════════════════════════════════
@@ -1406,16 +1462,24 @@ function drawTriangle() {
   ctx.shadowColor = '#ff5c9a'; ctx.shadowBlur = 18;
   ctx.fillStyle = '#ff5c9a'; ctx.fillText('SCAM', A.x, A.y - 16);
   ctx.shadowBlur = 0;
+  ctx.font = `500 ${Math.max(9, labelSize * 0.45)}px "Inter", sans-serif`;
+  ctx.fillStyle = 'rgba(255,92,154,0.55)'; ctx.fillText('deception', A.x, A.y - 2);
 
   // STEAL — gold with glow
+  ctx.font = `800 ${labelSize}px "Space Mono", monospace`;
   ctx.shadowColor = '#ffd740'; ctx.shadowBlur = 18;
   ctx.fillStyle = '#ffd740'; ctx.fillText('STEAL', B.x, B.y + labelSize + 10);
   ctx.shadowBlur = 0;
+  ctx.font = `500 ${Math.max(9, labelSize * 0.45)}px "Inter", sans-serif`;
+  ctx.fillStyle = 'rgba(255,215,64,0.55)'; ctx.fillText('taking', B.x, B.y + labelSize + 24);
 
   // SCHEME — cyan with glow
+  ctx.font = `800 ${labelSize}px "Space Mono", monospace`;
   ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 18;
   ctx.fillStyle = '#00e5ff'; ctx.fillText('SCHEME', C.x, C.y + labelSize + 10);
   ctx.shadowBlur = 0;
+  ctx.font = `500 ${Math.max(9, labelSize * 0.45)}px "Inter", sans-serif`;
+  ctx.fillStyle = 'rgba(0,229,255,0.55)'; ctx.fillText('plotting', C.x, C.y + labelSize + 24);
   ctx.letterSpacing = '0px';
 
   if (!stories.length || !stories[currentStoryIdx]) return;
@@ -1779,6 +1843,8 @@ async function renderLeaderboard() {
 function renderRankLadder() {
   const avgOwner = userData.matchOwner && userData.matchOwner.length ? Math.round(userData.matchOwner.reduce((a,b)=>a+b,0)/userData.matchOwner.length) : 0;
   const currentRank = getRankWithAdmin(userData.votes, avgOwner, userData.name);
+  const scoreEl = document.getElementById('currentScoreDisplay');
+  if (scoreEl) scoreEl.textContent = currentRank.score;
   const ladder = document.getElementById('rankLadder');
   ladder.innerHTML = '';
 
@@ -1787,7 +1853,7 @@ function renderRankLadder() {
     const achieved = currentRank.score >= r.minScore;
     const isCurrent = r.name === currentRank.name;
     step.className = 'rank-step' + (isCurrent ? ' current' : achieved ? ' achieved' : '');
-    step.innerHTML = `<span class="step-emoji">${r.emoji}</span> ${r.name}`;
+    step.innerHTML = `<span class="step-emoji">${r.emoji}</span> ${r.name} <span class="step-threshold">${r.minScore}+ pts</span>`;
     ladder.appendChild(step);
   });
 }
@@ -2976,6 +3042,11 @@ async function adminPublishStory() {
     </div>
   </div>
 </div>
+
+<!-- ─── FOOTER ─── -->
+<footer class="site-footer">
+  <a href="https://x.com/scamstealscheme" target="_blank" rel="noopener">@scamstealscheme</a>
+</footer>
 
 <!-- ─── APPROVE & PLOT MODAL ─── -->
 <div class="share-modal" id="approveModal">
