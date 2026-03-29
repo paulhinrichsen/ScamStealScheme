@@ -890,24 +890,37 @@
         <circle cx="10" cy="10" r="0.8" fill="#ffffff" opacity="0.08"/>
       </pattern>
       <rect width="500" height="500" fill="url(#dots)"/>
-      <polygon points="250,72 440,378 60,378" fill="none" stroke="#00e5ff" stroke-width="1.5" stroke-opacity="0.15"/>
-      <polygon points="250,72 440,378 60,378" fill="none" stroke="#00e5ff" stroke-width="3" stroke-opacity="0.08"/>
-      <polygon points="250,80 432,370 68,370" fill="none" stroke="#00e5ff" stroke-width="2.2" stroke-opacity="0.9"/>
-      <polygon points="250,80 432,370 68,370" fill="#00e5ff" fill-opacity="0.04"/>
-      <circle cx="250" cy="243" r="3.5" fill="#00e5ff" opacity="0.5"/>
-      <circle cx="250" cy="80" r="5" fill="#00e5ff" opacity="0.9"/>
-      <circle cx="432" cy="370" r="5" fill="#00e5ff" opacity="0.9"/>
+      <defs>
+        <linearGradient id="triGrad1" x1="250" y1="72" x2="440" y2="378" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ff5c9a"/>
+          <stop offset="100%" stop-color="#ffd740"/>
+        </linearGradient>
+        <linearGradient id="triGrad2" x1="440" y1="378" x2="60" y2="378" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#ffd740"/>
+          <stop offset="100%" stop-color="#00e5ff"/>
+        </linearGradient>
+        <linearGradient id="triGrad3" x1="60" y1="378" x2="250" y2="72" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#00e5ff"/>
+          <stop offset="100%" stop-color="#ff5c9a"/>
+        </linearGradient>
+      </defs>
+      <line x1="250" y1="80" x2="432" y2="370" stroke="url(#triGrad1)" stroke-width="2.2" stroke-opacity="0.9"/>
+      <line x1="432" y1="370" x2="68" y2="370" stroke="url(#triGrad2)" stroke-width="2.2" stroke-opacity="0.9"/>
+      <line x1="68" y1="370" x2="250" y2="80" stroke="url(#triGrad3)" stroke-width="2.2" stroke-opacity="0.9"/>
+      <circle cx="250" cy="243" r="3.5" fill="#ffffff" opacity="0.3"/>
+      <circle cx="250" cy="80" r="5" fill="#ff5c9a" opacity="0.9"/>
+      <circle cx="432" cy="370" r="5" fill="#ffd740" opacity="0.9"/>
       <circle cx="68" cy="370" r="5" fill="#00e5ff" opacity="0.9"/>
-      <text x="250" y="55" text-anchor="middle" font-family="'Courier New', Courier, monospace" font-size="22" font-weight="700" letter-spacing="6" fill="#00e5ff">SCAM</text>
-      <text x="462" y="400" text-anchor="middle" font-family="'Courier New', Courier, monospace" font-size="22" font-weight="700" letter-spacing="6" fill="#00e5ff">STEAL</text>
+      <text x="250" y="55" text-anchor="middle" font-family="'Courier New', Courier, monospace" font-size="22" font-weight="700" letter-spacing="6" fill="#ff5c9a">SCAM</text>
+      <text x="462" y="400" text-anchor="middle" font-family="'Courier New', Courier, monospace" font-size="22" font-weight="700" letter-spacing="6" fill="#ffd740">STEAL</text>
       <text x="38" y="400" text-anchor="middle" font-family="'Courier New', Courier, monospace" font-size="22" font-weight="700" letter-spacing="6" fill="#00e5ff">SCHEME</text>
-      <line x1="250" y1="243" x2="250" y2="82" stroke="#00e5ff" stroke-width="0.6" stroke-dasharray="3 4" opacity="0.3"/>
-      <line x1="250" y1="243" x2="430" y2="368" stroke="#00e5ff" stroke-width="0.6" stroke-dasharray="3 4" opacity="0.3"/>
+      <line x1="250" y1="243" x2="250" y2="82" stroke="#ff5c9a" stroke-width="0.6" stroke-dasharray="3 4" opacity="0.3"/>
+      <line x1="250" y1="243" x2="430" y2="368" stroke="#ffd740" stroke-width="0.6" stroke-dasharray="3 4" opacity="0.3"/>
       <line x1="250" y1="243" x2="70" y2="368" stroke="#00e5ff" stroke-width="0.6" stroke-dasharray="3 4" opacity="0.3"/>
       <rect x="2" y="2" width="496" height="496" fill="none" stroke="#00e5ff" stroke-width="1" stroke-opacity="0.15"/>
     </svg>
   </div>
-  <p class="slogan">Plot your <em>ploy</em> on the Scam Steal Scheme triangle.</p>
+  <p class="slogan">Plot your <em>ploy</em> on the <span style="color:#ff5c9a">Scam</span> <span style="color:#ffd740">Steal</span> <span style="color:#00e5ff">Scheme</span> triangle.</p>
 </div>
 
 <!-- USER RANK BADGE -->
@@ -1463,9 +1476,23 @@ function drawTriangle() {
 
   const { scam: A, steal: B, scheme: C } = triVerts;
 
-  ctx.beginPath();
-  ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y); ctx.lineTo(C.x, C.y); ctx.closePath();
-  ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3.75; ctx.stroke();
+  // Tri-color triangle edges
+  ctx.lineWidth = 3.75;
+  // SCAM(A) to STEAL(B) — pink to gold
+  const g1 = ctx.createLinearGradient(A.x, A.y, B.x, B.y);
+  g1.addColorStop(0, '#ff5c9a'); g1.addColorStop(1, '#ffd740');
+  ctx.beginPath(); ctx.moveTo(A.x, A.y); ctx.lineTo(B.x, B.y);
+  ctx.strokeStyle = g1; ctx.stroke();
+  // STEAL(B) to SCHEME(C) — gold to cyan
+  const g2 = ctx.createLinearGradient(B.x, B.y, C.x, C.y);
+  g2.addColorStop(0, '#ffd740'); g2.addColorStop(1, '#00e5ff');
+  ctx.beginPath(); ctx.moveTo(B.x, B.y); ctx.lineTo(C.x, C.y);
+  ctx.strokeStyle = g2; ctx.stroke();
+  // SCHEME(C) to SCAM(A) — cyan to pink
+  const g3 = ctx.createLinearGradient(C.x, C.y, A.x, A.y);
+  g3.addColorStop(0, '#00e5ff'); g3.addColorStop(1, '#ff5c9a');
+  ctx.beginPath(); ctx.moveTo(C.x, C.y); ctx.lineTo(A.x, A.y);
+  ctx.strokeStyle = g3; ctx.stroke();
 
 
   const triSize = Math.hypot(C.x - B.x, C.y - B.y);
@@ -2147,9 +2174,16 @@ function drawAdminTriangle(cvs, c, verts, point, existingPoint) {
 
   const { scam: A, steal: B, scheme: C } = verts;
 
-  c.beginPath();
-  c.moveTo(A.x, A.y); c.lineTo(B.x, B.y); c.lineTo(C.x, C.y); c.closePath();
-  c.strokeStyle = '#ffffff'; c.lineWidth = 3.75; c.stroke();
+  c.lineWidth = 3.75;
+  const cg1 = c.createLinearGradient(A.x, A.y, B.x, B.y);
+  cg1.addColorStop(0, '#ff5c9a'); cg1.addColorStop(1, '#ffd740');
+  c.beginPath(); c.moveTo(A.x, A.y); c.lineTo(B.x, B.y); c.strokeStyle = cg1; c.stroke();
+  const cg2 = c.createLinearGradient(B.x, B.y, C.x, C.y);
+  cg2.addColorStop(0, '#ffd740'); cg2.addColorStop(1, '#00e5ff');
+  c.beginPath(); c.moveTo(B.x, B.y); c.lineTo(C.x, C.y); c.strokeStyle = cg2; c.stroke();
+  const cg3 = c.createLinearGradient(C.x, C.y, A.x, A.y);
+  cg3.addColorStop(0, '#00e5ff'); cg3.addColorStop(1, '#ff5c9a');
+  c.beginPath(); c.moveTo(C.x, C.y); c.lineTo(A.x, A.y); c.strokeStyle = cg3; c.stroke();
 
   const triSize = Math.hypot(C.x - B.x, C.y - B.y);
   const labelSize = Math.max(13, Math.min(22, triSize * 0.09));
@@ -2594,10 +2628,16 @@ function drawSubmitTriangle() {
   submitTriCtx.fillStyle = '#000000';
   submitTriCtx.fillRect(0, 0, w, h);
   const { scam: A, steal: B, scheme: C } = submitTriVerts;
-  submitTriCtx.beginPath();
-  submitTriCtx.moveTo(A.x, A.y); submitTriCtx.lineTo(B.x, B.y); submitTriCtx.lineTo(C.x, C.y);
-  submitTriCtx.closePath();
-  submitTriCtx.strokeStyle = '#ffffff'; submitTriCtx.lineWidth = 3; submitTriCtx.stroke();
+  submitTriCtx.lineWidth = 3;
+  const sg1 = submitTriCtx.createLinearGradient(A.x, A.y, B.x, B.y);
+  sg1.addColorStop(0, '#ff5c9a'); sg1.addColorStop(1, '#ffd740');
+  submitTriCtx.beginPath(); submitTriCtx.moveTo(A.x, A.y); submitTriCtx.lineTo(B.x, B.y); submitTriCtx.strokeStyle = sg1; submitTriCtx.stroke();
+  const sg2 = submitTriCtx.createLinearGradient(B.x, B.y, C.x, C.y);
+  sg2.addColorStop(0, '#ffd740'); sg2.addColorStop(1, '#00e5ff');
+  submitTriCtx.beginPath(); submitTriCtx.moveTo(B.x, B.y); submitTriCtx.lineTo(C.x, C.y); submitTriCtx.strokeStyle = sg2; submitTriCtx.stroke();
+  const sg3 = submitTriCtx.createLinearGradient(C.x, C.y, A.x, A.y);
+  sg3.addColorStop(0, '#00e5ff'); sg3.addColorStop(1, '#ff5c9a');
+  submitTriCtx.beginPath(); submitTriCtx.moveTo(C.x, C.y); submitTriCtx.lineTo(A.x, A.y); submitTriCtx.strokeStyle = sg3; submitTriCtx.stroke();
   const triSize = Math.hypot(C.x - B.x, C.y - B.y);
   const labelSize = Math.max(13, Math.min(22, triSize * 0.09));
   submitTriCtx.textAlign = 'center';
@@ -2671,11 +2711,17 @@ function generateShareImage(pp) {
   const B = { x: cx - triW / 2,  y: pad + triH };
   const C = { x: cx + triW / 2,  y: pad + triH };
 
-  // Triangle edges — thick lines
-  octx.beginPath();
-  octx.moveTo(A.x, A.y); octx.lineTo(B.x, B.y); octx.lineTo(C.x, C.y);
-  octx.closePath();
-  octx.strokeStyle = '#ffffff'; octx.lineWidth = 10; octx.stroke();
+  // Triangle edges — tri-color gradient
+  octx.lineWidth = 10;
+  const og1 = octx.createLinearGradient(A.x, A.y, B.x, B.y);
+  og1.addColorStop(0, '#ff5c9a'); og1.addColorStop(1, '#ffd740');
+  octx.beginPath(); octx.moveTo(A.x, A.y); octx.lineTo(B.x, B.y); octx.strokeStyle = og1; octx.stroke();
+  const og2 = octx.createLinearGradient(B.x, B.y, C.x, C.y);
+  og2.addColorStop(0, '#ffd740'); og2.addColorStop(1, '#00e5ff');
+  octx.beginPath(); octx.moveTo(B.x, B.y); octx.lineTo(C.x, C.y); octx.strokeStyle = og2; octx.stroke();
+  const og3 = octx.createLinearGradient(C.x, C.y, A.x, A.y);
+  og3.addColorStop(0, '#00e5ff'); og3.addColorStop(1, '#ff5c9a');
+  octx.beginPath(); octx.moveTo(C.x, C.y); octx.lineTo(A.x, A.y); octx.strokeStyle = og3; octx.stroke();
 
   // Corner labels — bigger font
   const lsz = 52;
@@ -2896,10 +2942,16 @@ function drawApproveTriangle() {
   approveTriCtx.fillStyle = '#000000';
   approveTriCtx.fillRect(0, 0, w, h);
   const { scam: A, steal: B, scheme: C } = approveTriVerts;
-  approveTriCtx.beginPath();
-  approveTriCtx.moveTo(A.x, A.y); approveTriCtx.lineTo(B.x, B.y); approveTriCtx.lineTo(C.x, C.y);
-  approveTriCtx.closePath();
-  approveTriCtx.strokeStyle = '#ffffff'; approveTriCtx.lineWidth = 3; approveTriCtx.stroke();
+  approveTriCtx.lineWidth = 3;
+  const ag1 = approveTriCtx.createLinearGradient(A.x, A.y, B.x, B.y);
+  ag1.addColorStop(0, '#ff5c9a'); ag1.addColorStop(1, '#ffd740');
+  approveTriCtx.beginPath(); approveTriCtx.moveTo(A.x, A.y); approveTriCtx.lineTo(B.x, B.y); approveTriCtx.strokeStyle = ag1; approveTriCtx.stroke();
+  const ag2 = approveTriCtx.createLinearGradient(B.x, B.y, C.x, C.y);
+  ag2.addColorStop(0, '#ffd740'); ag2.addColorStop(1, '#00e5ff');
+  approveTriCtx.beginPath(); approveTriCtx.moveTo(B.x, B.y); approveTriCtx.lineTo(C.x, C.y); approveTriCtx.strokeStyle = ag2; approveTriCtx.stroke();
+  const ag3 = approveTriCtx.createLinearGradient(C.x, C.y, A.x, A.y);
+  ag3.addColorStop(0, '#00e5ff'); ag3.addColorStop(1, '#ff5c9a');
+  approveTriCtx.beginPath(); approveTriCtx.moveTo(C.x, C.y); approveTriCtx.lineTo(A.x, A.y); approveTriCtx.strokeStyle = ag3; approveTriCtx.stroke();
   const labelSize = Math.max(10, Math.min(w, h) * 0.055);
   approveTriCtx.textAlign = 'center';
   approveTriCtx.font = `800 ${labelSize}px "Space Mono", monospace`;
