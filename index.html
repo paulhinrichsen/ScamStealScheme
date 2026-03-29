@@ -28,7 +28,7 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'Inter', sans-serif;
+    font-family: 'Space Mono', monospace;
     min-height: 100vh;
     overflow-x: hidden;
   }
@@ -58,7 +58,7 @@
   }
   .hero-explainer {
     font-family: 'Space Mono', monospace;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     color: #ffd740;
     max-width: 520px;
     margin: 8px auto 16px;
@@ -104,7 +104,7 @@
   .rank-bar-label { font-size: 0.7rem; color: var(--text-dim); font-family: 'Space Mono', monospace; }
   .triangle-tagline {
     font-family: 'Space Mono', monospace;
-    font-size: 0.82rem;
+    font-size: 0.95rem;
     color: #ffd740;
     text-align: center;
     padding: 14px 20px 0;
@@ -137,6 +137,20 @@
     transition: all 0.2s;
     letter-spacing: 0.3px;
     white-space: nowrap;
+  }
+  .tab-or {
+    color: #00e5ff;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    align-self: center;
+    pointer-events: none;
+  }
+  .tab-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 16px;
+    align-self: center;
   }
   .tab-btn:hover {
     color: var(--text);
@@ -298,7 +312,7 @@
   }
   .form-card .form-desc {
     color: var(--text-dim);
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     margin-bottom: 22px;
     line-height: 1.5;
   }
@@ -322,7 +336,7 @@
     margin-bottom: 16px;
     outline: none;
     transition: border-color 0.2s;
-    font-family: 'Inter', sans-serif;
+    font-family: inherit;
   }
   .form-card input:focus, .form-card textarea:focus { border-color: var(--accent); }
   .form-card input::placeholder, .form-card textarea::placeholder { color: #444; }
@@ -614,7 +628,7 @@
     font-size: 0.88rem;
     margin-bottom: 10px;
     outline: none;
-    font-family: 'Inter', sans-serif;
+    font-family: inherit;
   }
   .admin-add-story textarea { resize: vertical; min-height: 80px; }
   .admin-add-story input:focus, .admin-add-story textarea:focus { border-color: var(--accent); }
@@ -663,9 +677,9 @@
     margin-bottom: 6px;
   }
   .submit-tri-desc {
-    font-size: 0.78rem;
+    font-size: 0.95rem;
     color: var(--text-dim);
-    margin-bottom: 14px;
+    margin-bottom: 22px;
     line-height: 1.5;
   }
   .submit-triangle-container {
@@ -930,7 +944,9 @@
      ════════════════════════════════════════════ -->
 <div class="tab-bar">
   <button class="tab-btn" data-tab="submit">Submit a Ploy</button>
+  <span class="tab-or">or</span>
   <button class="tab-btn active" data-tab="plot">Plot a Ploy</button>
+  <span class="tab-divider"></span>
   <button class="tab-btn" data-tab="account">Account</button>
   <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
   <button class="tab-btn admin-tab" data-tab="admin">Admin</button>
