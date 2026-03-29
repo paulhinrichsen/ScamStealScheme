@@ -57,7 +57,7 @@
     font-weight: 700;
   }
   .hero-explainer {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Space Mono', monospace;
     font-size: 0.85rem;
     color: var(--text-dim);
     max-width: 440px;
@@ -132,9 +132,9 @@
     background: var(--surface2);
   }
   .tab-btn.active {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: var(--accent-dim);
+    color: #ff5c9a;
+    border-color: #ff5c9a;
+    background: rgba(255,92,154,0.15);
   }
 
   /* ═══════════════════════════════════════════
@@ -903,9 +903,12 @@
 <!-- USER RANK BADGE -->
 <div class="user-rank-bar">
   <span class="rank-bar-label">Your rank:</span>
-  <div class="rank-badge" onclick="switchTab('account')" title="Claim or recover your name">
+  <div class="rank-badge" onclick="switchTab('leaderboard')" title="View leaderboard">
     <span class="rank-emoji" id="userRankEmoji">🐀</span>
     <span class="rank-name" id="userRankName">Snitch</span>
+  </div>
+  <span class="rank-bar-label">Your name:</span>
+  <div class="rank-badge" onclick="switchTab('account')" title="Claim or recover your name">
     <span class="rank-username" id="userBadge">anonymous</span>
   </div>
 </div>
@@ -915,7 +918,7 @@
      ════════════════════════════════════════════ -->
 <div class="tab-bar">
   <button class="tab-btn" data-tab="submit">Submit a Ploy</button>
-  <button class="tab-btn active" data-tab="plot">Plot</button>
+  <button class="tab-btn active" data-tab="plot">Plot a Ploy</button>
   <button class="tab-btn" data-tab="account">Account</button>
   <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
   <button class="tab-btn admin-tab" data-tab="admin">Admin</button>
@@ -1462,24 +1465,16 @@ function drawTriangle() {
   ctx.shadowColor = '#ff5c9a'; ctx.shadowBlur = 18;
   ctx.fillStyle = '#ff5c9a'; ctx.fillText('SCAM', A.x, A.y - 16);
   ctx.shadowBlur = 0;
-  ctx.font = `500 ${Math.max(9, labelSize * 0.45)}px "Inter", sans-serif`;
-  ctx.fillStyle = 'rgba(255,92,154,0.55)'; ctx.fillText('deception', A.x, A.y - 2);
 
   // STEAL — gold with glow
-  ctx.font = `800 ${labelSize}px "Space Mono", monospace`;
   ctx.shadowColor = '#ffd740'; ctx.shadowBlur = 18;
   ctx.fillStyle = '#ffd740'; ctx.fillText('STEAL', B.x, B.y + labelSize + 10);
   ctx.shadowBlur = 0;
-  ctx.font = `500 ${Math.max(9, labelSize * 0.45)}px "Inter", sans-serif`;
-  ctx.fillStyle = 'rgba(255,215,64,0.55)'; ctx.fillText('taking', B.x, B.y + labelSize + 24);
 
   // SCHEME — cyan with glow
-  ctx.font = `800 ${labelSize}px "Space Mono", monospace`;
   ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 18;
   ctx.fillStyle = '#00e5ff'; ctx.fillText('SCHEME', C.x, C.y + labelSize + 10);
   ctx.shadowBlur = 0;
-  ctx.font = `500 ${Math.max(9, labelSize * 0.45)}px "Inter", sans-serif`;
-  ctx.fillStyle = 'rgba(0,229,255,0.55)'; ctx.fillText('plotting', C.x, C.y + labelSize + 24);
   ctx.letterSpacing = '0px';
 
   if (!stories.length || !stories[currentStoryIdx]) return;
