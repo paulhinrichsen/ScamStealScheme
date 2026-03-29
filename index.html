@@ -148,7 +148,7 @@
   .tab-divider {
     width: 1px;
     height: 20px;
-    background: var(--border);
+    background: #00e5ff;
     margin: 0 16px;
     align-self: center;
   }
@@ -969,6 +969,9 @@
     </div>
 
     <div class="plot-layout">
+      <div class="submit-coord-display" id="plotTapHint">
+        <span class="submit-coord-hint">Tap the triangle to plot your answer</span>
+      </div>
       <div class="triangle-container">
         <canvas class="triangle-canvas" id="triangleCanvas"></canvas>
       </div>
@@ -1615,6 +1618,8 @@ function handleCanvasClick(e) {
   if (!isInsideTriangle(px, py)) return;
 
   plotPoint = cartToBary(px, py);
+  const tapHint = document.getElementById('plotTapHint');
+  if (tapHint) tapHint.style.display = 'none';
   updateCoordDisplay();
   document.getElementById('btnVote').disabled = false;
   drawTriangle();
