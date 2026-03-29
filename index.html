@@ -2831,9 +2831,27 @@ function renderAdminPanel() {
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
+function dismissLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay && !overlay.classList.contains('hide')) {
+    overlay.classList.add('hide');
+    setTimeout(() => overlay.remove(), 500);
+  }
+}
+
 async function init() {
   visitorId = getOrCreateVisitorId();
   try { loadMyVotes(); } catch(e) { myVotes = {}; }
+
+  // Safety timeout — show the UI after 5s no matter what
+  const loadingTimeout = setTimeout(() => {
+    console.warn('Loading timeout — showing UI');
+    dismissLoading();
+    resizeCanvas();
+    resizeSubmitCanvas();
+    updateUserRankDisplay();
+    loadStory();
+  }, 5000);
 
   let loadedStories = [], loadedUserData = { name: 'anonymous', phraseHash: null, votes: 0, matchOwner: [], matchPublic: [] };
   try {
@@ -2845,43 +2863,37 @@ async function init() {
   stories = loadedStories;
   userData = loadedUserData;
 
-  try {
-    await Promise.all(stories.map(async story => {
-      votesCache[story.id] = await loadVotesForStory(story.id);
-    }));
-  } catch(e) {
-    console.warn('Failed to load some vote data:', e);
-  }
-
-  // Reconcile myVotes with Firestore: if a user voted from another
-  // device/session, localStorage won't know about it. Sync it now.
-  let votesChanged = false;
-  stories.forEach(story => {
-    if (!myVotes[story.id] && votesCache[story.id]) {
-      const alreadyVoted = votesCache[story.id].some(v => v.userId === visitorId);
-      if (alreadyVoted) {
-        myVotes[story.id] = true;
-        votesChanged = true;
+  // Load votes in background — don't block UI
+  Promise.all(stories.map(async story => {
+    try { votesCache[story.id] = await loadVotesForStory(story.id); } catch(e) {}
+  })).then(() => {
+    // Reconcile myVotes with Firestore
+    let votesChanged = false;
+    stories.forEach(story => {
+      if (!myVotes[story.id] && votesCache[story.id]) {
+        const alreadyVoted = votesCache[story.id].some(v => v.userId === visitorId);
+        if (alreadyVoted) {
+          myVotes[story.id] = true;
+          votesChanged = true;
+        }
       }
-    }
+    });
+    if (votesChanged) saveMyVotes();
+    // Redraw with vote data
+    drawTriangle();
   });
-  if (votesChanged) saveMyVotes();
 
   // Start with first unanswered story (newest first)
   currentStoryIdx = findCurrentQueueIdx();
 
+  clearTimeout(loadingTimeout);
   checkAdmin();
   resizeCanvas();
   resizeSubmitCanvas();
   updateUserRankDisplay();
   loadStory();
 
-  // Dismiss loading overlay
-  const overlay = document.getElementById('loadingOverlay');
-  if (overlay) {
-    overlay.classList.add('hide');
-    setTimeout(() => overlay.remove(), 500);
-  }
+  dismissLoading();
 }
 
 window.addEventListener('resize', () => { resizeCanvas(); resizeSubmitCanvas(); });
