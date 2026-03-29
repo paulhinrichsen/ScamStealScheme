@@ -195,19 +195,20 @@
 
   .plot-layout {
     display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    max-width: 440px;
+    margin: 0 auto;
   }
   .triangle-container {
     position: relative;
-    width: 420px;
-    height: 400px;
+    width: 100%;
+    height: 350px;
     flex-shrink: 0;
   }
   .triangle-canvas { width: 100%; height: 100%; cursor: crosshair; }
-  .vote-panel { flex: 1; min-width: 260px; max-width: 340px; }
+  .vote-panel { width: 100%; }
 
   .your-plot {
     background: none;
@@ -655,12 +656,11 @@
     padding-top: 20px;
   }
   .submit-tri-label {
-    font-size: 0.7rem;
-    color: var(--text-dim);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
     font-family: 'Space Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
   .submit-tri-desc {
     font-size: 0.78rem;
@@ -859,9 +859,7 @@
   @media (max-width: 700px) {
     .logo-wrap { width: 100px; height: 100px; }
     .slogan { font-size: 0.8rem; }
-    .triangle-container { width: 100%; height: 300px; }
-    .plot-layout { flex-direction: column; align-items: center; }
-    .vote-panel { max-width: 100%; }
+    .triangle-container { height: 280px; }
     .tab-btn { font-size: 0.68rem; padding: 8px 10px; }
     .lb-header, .lb-row {
       grid-template-columns: 30px 1fr 50px 42px 52px 52px;
@@ -1041,7 +1039,7 @@
 
         <div class="submit-tri-section">
           <div class="submit-tri-label">Plot Your Answer</div>
-          <p class="submit-tri-desc">Where does this fall on the triangle? Drop a point — you'll get a saveable image to reply with on X.</p>
+          <p class="submit-tri-desc" style="color:#ffd740;">Read a real story. Tap where it lands. See how you compare to the crowd and The Final Boss.</p>
           <div class="submit-triangle-container">
             <canvas class="submit-triangle-canvas" id="submitTriCanvas"></canvas>
           </div>
@@ -1476,6 +1474,23 @@ function drawTriColorEdges(c, A, B, C, lw) {
   c.lineCap = 'butt';
 }
 
+function plotColor(bary) {
+  // Blend #ff5c9a (scam), #ffd740 (steal), #00e5ff (scheme) by barycentric weights
+  const s = bary.scam, t = bary.steal, k = bary.scheme;
+  const r = Math.round(255*s + 255*t + 0*k);
+  const g = Math.round(92*s + 215*t + 229*k);
+  const b = Math.round(154*s + 64*t + 255*k);
+  return `rgb(${r},${g},${b})`;
+}
+
+function plotColorAlpha(bary, a) {
+  const s = bary.scam, t = bary.steal, k = bary.scheme;
+  const r = Math.round(255*s + 255*t + 0*k);
+  const g = Math.round(92*s + 215*t + 229*k);
+  const b = Math.round(154*s + 64*t + 255*k);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
 function drawTriangle() {
   const w = canvas.width / (window.devicePixelRatio || 1);
   const h = canvas.height / (window.devicePixelRatio || 1);
@@ -1539,11 +1554,12 @@ function drawTriangle() {
 
   if (plotPoint) {
     const pp = baryToCart(plotPoint.scam, plotPoint.steal, plotPoint.scheme);
-    drawDot(pp.x, pp.y, '#00e5ff', 'rgba(0, 229, 255, 0.35)', 9);
+    const pc = plotColor(plotPoint), pca = plotColorAlpha(plotPoint, 0.35), pca2 = plotColorAlpha(plotPoint, 0.2);
+    drawDot(pp.x, pp.y, pc, pca, 9);
     ctx.beginPath(); ctx.arc(pp.x, pp.y, 14, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0, 229, 255, 0.2)'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.strokeStyle = pca2; ctx.lineWidth = 1.5; ctx.stroke();
     ctx.font = '600 9px "Space Mono", monospace'; ctx.textAlign = 'center';
-    ctx.fillStyle = '#00e5ff'; ctx.fillText('YOU', pp.x, pp.y - 18);
+    ctx.fillStyle = pc; ctx.fillText('YOU', pp.x, pp.y - 18);
   }
 }
 
@@ -2207,11 +2223,12 @@ function drawAdminTriangle(cvs, c, verts, point, existingPoint) {
   // Show clicked point
   if (point) {
     const pp = adminBaryToCart(point.scam, point.steal, point.scheme, verts);
-    drawDot(pp.x, pp.y, '#00e5ff', 'rgba(0, 229, 255, 0.35)', 8);
+    const apc = plotColor(point), apca = plotColorAlpha(point, 0.35), apca2 = plotColorAlpha(point, 0.2);
+    drawDot(pp.x, pp.y, apc, apca, 8);
     c.beginPath(); c.arc(pp.x, pp.y, 12, 0, Math.PI * 2);
-    c.strokeStyle = 'rgba(0, 229, 255, 0.2)'; c.lineWidth = 1.5; c.stroke();
+    c.strokeStyle = apca2; c.lineWidth = 1.5; c.stroke();
     c.font = '600 8px "Space Mono", monospace'; c.textAlign = 'center';
-    c.fillStyle = '#00e5ff'; c.fillText('NEW', pp.x, pp.y - 14);
+    c.fillStyle = apc; c.fillText('NEW', pp.x, pp.y - 14);
   }
 }
 
@@ -2633,16 +2650,17 @@ function drawSubmitTriangle() {
   submitTriCtx.shadowBlur = 0;
   if (submitPlotPoint) {
     const pp = baryToCartSub(submitPlotPoint.scam, submitPlotPoint.steal, submitPlotPoint.scheme);
+    const spc = plotColor(submitPlotPoint), spca = plotColorAlpha(submitPlotPoint, 0.3), spca2 = plotColorAlpha(submitPlotPoint, 0.2);
     submitTriCtx.beginPath(); submitTriCtx.arc(pp.x, pp.y, 15, 0, Math.PI * 2);
-    submitTriCtx.fillStyle = 'rgba(0,229,255,0.3)'; submitTriCtx.fill();
+    submitTriCtx.fillStyle = spca; submitTriCtx.fill();
     submitTriCtx.beginPath(); submitTriCtx.arc(pp.x, pp.y, 9, 0, Math.PI * 2);
-    submitTriCtx.fillStyle = '#00e5ff'; submitTriCtx.fill();
+    submitTriCtx.fillStyle = spc; submitTriCtx.fill();
     submitTriCtx.beginPath(); submitTriCtx.arc(pp.x - 2, pp.y - 2, 3, 0, Math.PI * 2);
     submitTriCtx.fillStyle = 'rgba(255,255,255,0.25)'; submitTriCtx.fill();
     submitTriCtx.beginPath(); submitTriCtx.arc(pp.x, pp.y, 14, 0, Math.PI * 2);
-    submitTriCtx.strokeStyle = 'rgba(0,229,255,0.2)'; submitTriCtx.lineWidth = 1.5; submitTriCtx.stroke();
+    submitTriCtx.strokeStyle = spca2; submitTriCtx.lineWidth = 1.5; submitTriCtx.stroke();
     submitTriCtx.font = '600 9px "Space Mono", monospace'; submitTriCtx.textAlign = 'center';
-    submitTriCtx.fillStyle = '#00e5ff'; submitTriCtx.fillText('YOU', pp.x, pp.y - 18);
+    submitTriCtx.fillStyle = spc; submitTriCtx.fillText('YOU', pp.x, pp.y - 18);
   }
 }
 
@@ -2708,27 +2726,28 @@ function generateShareImage(pp) {
   octx.fillStyle = '#00e5ff'; octx.fillText('SCHEME', C.x, C.y + lsz + 18);
   octx.shadowBlur = 0;
 
-  // User's dot — large, no label
+  // User's dot — large, color-shifting
   const dx = pp.scam * A.x + pp.steal * B.x + pp.scheme * C.x;
   const dy = pp.scam * A.y + pp.steal * B.y + pp.scheme * C.y;
+  const opc = plotColor(pp);
   // Outer glow
   octx.beginPath(); octx.arc(dx, dy, 52, 0, Math.PI * 2);
-  octx.fillStyle = 'rgba(0,229,255,0.12)'; octx.fill();
+  octx.fillStyle = plotColorAlpha(pp, 0.12); octx.fill();
   // Mid glow
   octx.beginPath(); octx.arc(dx, dy, 38, 0, Math.PI * 2);
-  octx.fillStyle = 'rgba(0,229,255,0.22)'; octx.fill();
+  octx.fillStyle = plotColorAlpha(pp, 0.22); octx.fill();
   // Inner glow
   octx.beginPath(); octx.arc(dx, dy, 26, 0, Math.PI * 2);
-  octx.fillStyle = 'rgba(0,229,255,0.35)'; octx.fill();
+  octx.fillStyle = plotColorAlpha(pp, 0.35); octx.fill();
   // Dot
   octx.beginPath(); octx.arc(dx, dy, 18, 0, Math.PI * 2);
-  octx.fillStyle = '#00e5ff'; octx.fill();
+  octx.fillStyle = opc; octx.fill();
   // Specular highlight
   octx.beginPath(); octx.arc(dx - 5, dy - 5, 7, 0, Math.PI * 2);
   octx.fillStyle = 'rgba(255,255,255,0.35)'; octx.fill();
   // Outer ring
   octx.beginPath(); octx.arc(dx, dy, 30, 0, Math.PI * 2);
-  octx.strokeStyle = 'rgba(0,229,255,0.3)'; octx.lineWidth = 2.5; octx.stroke();
+  octx.strokeStyle = plotColorAlpha(pp, 0.3); octx.lineWidth = 2.5; octx.stroke();
 
   // Percentage breakdown
   const pS = Math.round(pp.scam * 100);
@@ -2928,10 +2947,11 @@ function drawApproveTriangle() {
   approveTriCtx.shadowBlur = 0;
   if (approvePlotPoint) {
     const pp = baryToCartApp(approvePlotPoint.scam, approvePlotPoint.steal, approvePlotPoint.scheme);
+    const apc2 = plotColor(approvePlotPoint);
     approveTriCtx.beginPath(); approveTriCtx.arc(pp.x, pp.y, 15, 0, Math.PI*2);
-    approveTriCtx.fillStyle = 'rgba(255,93,154,0.25)'; approveTriCtx.fill();
+    approveTriCtx.fillStyle = plotColorAlpha(approvePlotPoint, 0.25); approveTriCtx.fill();
     approveTriCtx.beginPath(); approveTriCtx.arc(pp.x, pp.y, 9, 0, Math.PI*2);
-    approveTriCtx.fillStyle = '#ff5c9a'; approveTriCtx.fill();
+    approveTriCtx.fillStyle = apc2; approveTriCtx.fill();
     approveTriCtx.beginPath(); approveTriCtx.arc(pp.x-2, pp.y-2, 3, 0, Math.PI*2);
     approveTriCtx.fillStyle = 'rgba(255,255,255,0.25)'; approveTriCtx.fill();
   }
@@ -3067,7 +3087,7 @@ async function adminPublishStory() {
 
 <!-- ─── FOOTER ─── -->
 <footer class="site-footer">
-  <a href="https://x.com/scamstealscheme" target="_blank" rel="noopener">@scamstealscheme</a>
+  <a href="https://x.com/scamstealscheme" target="_blank" rel="noopener"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:-2px;margin-right:6px;"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>@scamstealscheme</a>
 </footer>
 
 <!-- ─── APPROVE & PLOT MODAL ─── -->
