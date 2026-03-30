@@ -1047,6 +1047,46 @@
       font-size: 0.62rem;
     }
   }
+
+  /* ═══════════════════════════════════════════
+     ADMIN STORY DETAIL PANEL
+     ═══════════════════════════════════════════ */
+  .admin-story-detail {
+    display: none;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-top: 10px;
+  }
+  .admin-story-detail.show { display: block; }
+  .admin-story-detail .detail-embed {
+    margin-bottom: 12px;
+    border-radius: 10px;
+    overflow: hidden;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .admin-story-detail .detail-embed iframe {
+    width: 100%; border: none; border-radius: 8px; background: #111;
+  }
+  .admin-detail-stats {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    font-size: 0.72rem; font-family: 'Space Mono', monospace;
+    color: var(--text-dim); margin-top: 8px;
+  }
+  .admin-detail-stats .stat-item { display: flex; gap: 4px; align-items: center; }
+  .admin-detail-stats .stat-val { color: var(--text); font-weight: 700; }
+
+  /* Facebook embed container */
+  .fb-embed-container { background: var(--surface2); border-radius: 10px; overflow: hidden; }
+  .fb-embed-container .fb-post { background: transparent !important; }
+
+  /* Generic URL iframe embed */
+  .url-iframe-embed {
+    width: 100%; height: 350px; border: none; border-radius: 8px;
+    background: #fff;
+  }
 </style>
 </head>
 <body>
@@ -1209,20 +1249,16 @@
     <div class="form-page">
       <div class="form-card">
         <h2>Submit a Ploy</h2>
-        <p class="form-desc" style="color:#ffd740;">Found a scam, theft, or scheme worth plotting? Drop it here for review.</p>
-        <label>Submission Type</label>
-        <select id="submitType" onchange="handleSubmitTypeChange()">
-          <option value="xpost">X / Twitter Post Link</option>
-          <option value="linkedin">LinkedIn Post Link</option>
-          <option value="url">Article URL</option>
-          <option value="text">Paste / Write It</option>
-        </select>
-        <label id="submitContentLabel">X / Twitter Link</label>
-        <textarea id="submitContent" placeholder="Paste the X/Twitter post URL..."></textarea>
+        <p class="form-desc" style="color:#ffd740;">Found a scam, theft, or scheme worth plotting? Drop it here.</p>
+        <div class="account-toggle" id="submitModeToggle">
+          <button class="acct-toggle-btn active" onclick="setSubmitMode('link')">Share a Link</button>
+          <button class="acct-toggle-btn" onclick="setSubmitMode('write')">Write a Story</button>
+        </div>
+        <textarea id="submitContent" placeholder="Paste a link (Twitter, LinkedIn, Facebook, article...)"></textarea>
 
         <div class="submit-tri-section">
           <div class="submit-tri-label">Plot Your Answer</div>
-          <p class="submit-tri-desc" style="color:#ffd740;">Read a real story. Tap where it lands. See how you compare to the crowd and The Final Boss.</p>
+          <p class="submit-tri-desc" style="color:#ffd740;">Tap where this lands on the triangle.</p>
           <div id="submitCoordDisplay" class="submit-coord-display">
             <span class="submit-coord-hint">Tap the triangle to plot your answer</span>
           </div>
@@ -1240,12 +1276,6 @@
 
   <!-- ─── LEADERBOARD TAB ─── -->
   <div class="tab-page" id="page-leaderboard">
-    <div class="rank-progress-card">
-      <h3>Your Rank Progress</h3>
-      <p class="rank-score-explainer">Score = (votes × 2) + avg Boss match. Current: <span id="currentScoreDisplay">0</span> pts</p>
-      <div class="rank-ladder" id="rankLadder"></div>
-    </div>
-
     <div class="final-boss-banner" id="finalBossBanner">
       <span class="fb-emoji">🔥</span>
       <span class="fb-name">The Final Boss</span>
@@ -1261,6 +1291,12 @@
         <div>Public</div>
       </div>
       <div class="lb-empty" id="lbEmpty">No votes yet. Be the first to plot a point.</div>
+    </div>
+
+    <div class="rank-progress-card" style="margin-top:16px;">
+      <h3>Your Rank Progress</h3>
+      <p class="rank-score-explainer">Score = (votes × 2) + avg Boss match. Current: <span id="currentScoreDisplay">0</span> pts</p>
+      <div class="rank-ladder" id="rankLadder"></div>
     </div>
   </div>
 
@@ -1307,33 +1343,15 @@
     <div class="admin-section">
       <h3>Add New Story</h3>
       <div class="admin-add-story-form">
-        <div id="adminNewTitleWrapper" style="display:block;">
-          <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Story Title <span id="adminTitleRequired" style="color:var(--orange);">*</span></label>
-          <input type="text" id="adminNewTitle" placeholder="e.g. SBF Fraud Case" maxlength="200" style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;font-family:'Space Mono',monospace;">
-          <div id="adminTitleOptionalNote" style="display:none;font-size:0.7rem;color:var(--text-dim);margin-top:-8px;margin-bottom:12px;font-style:italic;">(Optional for Twitter/X links)</div>
+        <div class="account-toggle" id="adminAddModeToggle">
+          <button class="acct-toggle-btn active" onclick="setAdminAddMode('link')">Share a Link</button>
+          <button class="acct-toggle-btn" onclick="setAdminAddMode('write')">Write a Story</button>
         </div>
-
-        <div id="adminNewDescWrapper" style="display:block;">
-          <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Description / Summary <span id="adminDescRequired" style="color:var(--orange);">*</span></label>
-          <textarea id="adminNewDesc" placeholder="Describe the story or paste the article text..." style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;font-family:'Space Mono',monospace;min-height:100px;resize:vertical;"></textarea>
-          <div id="adminDescOptionalNote" style="display:none;font-size:0.7rem;color:var(--text-dim);margin-top:-8px;margin-bottom:12px;font-style:italic;">(Optional for Twitter/X links)</div>
-        </div>
-
-        <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Story URL (optional)</label>
-        <input type="text" id="adminNewUrl" placeholder="https://example.com/article or https://x.com/user/status/123..." style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;font-family:'Space Mono',monospace;">
-
-        <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Source Type</label>
-        <select id="adminNewSource" style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;">
-          <option value="">-- None (Manual Entry) --</option>
-          <option value="xpost">X / Twitter Post</option>
-          <option value="linkedin">LinkedIn Post</option>
-          <option value="url">Article URL</option>
-          <option value="text">Text / Manual</option>
-        </select>
+        <textarea id="adminNewContent" placeholder="Paste a link (Twitter, LinkedIn, Facebook, article...)" style="width:100%;padding:14px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;margin-bottom:14px;outline:none;font-family:inherit;min-height:90px;resize:vertical;"></textarea>
 
         <div class="submit-tri-section">
           <div class="submit-tri-label">Set Official Position</div>
-          <p class="submit-tri-desc" style="color:#ffd740;">Tap the triangle to set where this story lands on the scam/steal/scheme spectrum.</p>
+          <p class="submit-tri-desc" style="color:#ffd740;">Tap the triangle to set where this lands.</p>
           <div id="adminNewCoordDisplay" class="submit-coord-display">
             <span class="submit-coord-hint">Tap the triangle to set position</span>
           </div>
@@ -1353,6 +1371,8 @@
 </div><!-- /tab-content -->
 
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+<div id="fb-root"></div>
+<script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v18.0" nonce=""></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script>
@@ -1525,14 +1545,19 @@ async function loadStories() {
     const firebaseStories = snap.docs.map(doc => {
       const data = doc.data();
       const official = data.official || {};
+      // Auto-detect source type from content/description
+      const desc = data.description || '';
+      const detectedType = data.source || detectLinkType(desc);
+      const tweetUrl = (detectedType === 'xpost') ? extractTweetUrl(desc) : null;
       return {
         id: doc.id,
         title: data.title,
-        desc: data.description,
-        source: data.source || null,
-        tweetUrl: data.source === 'xpost' ? extractTweetUrl(data.description) : null,
-        linkedinUrl: data.source === 'linkedin' ? data.description : null,
-        linkUrl: data.source === 'url' ? data.description : null,
+        desc: desc,
+        source: detectedType,
+        tweetUrl: tweetUrl,
+        linkedinUrl: (detectedType === 'linkedin') ? desc.trim() : null,
+        facebookUrl: (detectedType === 'facebook') ? desc.trim() : null,
+        linkUrl: (detectedType === 'url') ? desc.trim() : null,
         ownerPlotSet: data.ownerPlotSet || false,
         ownerPlot: {
           scam: (official.scam || 0) / 100,
@@ -1953,8 +1978,27 @@ function advanceToNextUnanswered() {
 function getStoryTypeBadge(story) {
   if (story.tweetUrl || story.source === 'xpost') return '<div class="story-type-badge type-xpost"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> X Post</div>';
   if (story.linkedinUrl || story.source === 'linkedin') return '<div class="story-type-badge type-linkedin"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> LinkedIn</div>';
+  if (story.facebookUrl || story.source === 'facebook') return '<div class="story-type-badge type-url" style="background:rgba(24,119,242,0.12);color:#1877f2;border-color:rgba(24,119,242,0.25);"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> Facebook</div>';
   if (story.linkUrl || story.source === 'url') return '<div class="story-type-badge type-url"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Link</div>';
   return '<div class="story-type-badge type-text"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Story</div>';
+}
+
+// Render Facebook embed
+function renderFacebookEmbed(url, container) {
+  if (!url || !container) return;
+  const encodedUrl = encodeURIComponent(url);
+  container.innerHTML = `<iframe src="https://www.facebook.com/plugins/post.php?href=${encodedUrl}&show_text=true&width=500" width="100%" height="320" style="border:none;overflow:hidden;max-width:100%;border-radius:8px;" scrolling="no" frameborder="0" allowfullscreen="true" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>`;
+}
+
+// Render a generic URL as an iframe with fallback
+function renderUrlEmbed(url, container, title) {
+  if (!url || !container) return;
+  container.innerHTML = `<iframe src="${escHtml(url)}" class="url-iframe-embed" sandbox="allow-scripts allow-same-origin" loading="lazy" title="${escHtml(title || 'Article')}"></iframe>`;
+  // If iframe fails to load, show fallback link card
+  const iframe = container.querySelector('iframe');
+  iframe.onerror = () => {
+    container.innerHTML = `<a href="${escHtml(url)}" target="_blank" rel="noopener" class="story-link-card"><div class="story-link-icon url-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div><div class="story-link-text">Open Article</div><div class="story-link-domain">${extractDomain(url)}</div></div></a>`;
+  };
 }
 
 function renderStory() {
@@ -1986,27 +2030,31 @@ function renderStory() {
   const titleEl = document.getElementById('storyTitle');
   const descEl = document.getElementById('storyDesc');
 
-  // Type badge + content
+  // Type badge + inline content rendering
+  titleEl.style.display = '';
+  titleEl.innerHTML = getStoryTypeBadge(story) + (story.title ? '<div style="margin-top:4px">' + escHtml(story.title) + '</div>' : '');
+
   if (story.tweetUrl) {
-    titleEl.style.display = '';
-    titleEl.innerHTML = getStoryTypeBadge(story) + (story.title ? '<div style="margin-top:4px">' + escHtml(story.title) + '</div>' : '');
     descEl.style.display = 'none';
     renderTweetEmbed(story.tweetUrl);
+  } else if (story.facebookUrl) {
+    descEl.style.display = '';
+    renderTweetEmbed(null);
+    renderFacebookEmbed(story.facebookUrl, descEl);
   } else if (story.linkedinUrl) {
-    titleEl.style.display = '';
-    titleEl.innerHTML = getStoryTypeBadge(story) + '<div style="margin-top:4px">' + escHtml(story.title || 'LinkedIn Post') + '</div>';
     descEl.style.display = '';
-    descEl.innerHTML = '<a href="' + escHtml(story.linkedinUrl) + '" target="_blank" rel="noopener" class="story-link-card"><div class="story-link-icon linkedin-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#0077b5"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></div><div><div class="story-link-text">View on LinkedIn</div><div class="story-link-domain">' + extractDomain(story.linkedinUrl) + '</div></div></a>';
     renderTweetEmbed(null);
+    // LinkedIn blocks embeds — use iframe of their embed endpoint
+    const encodedUrl = encodeURIComponent(story.linkedinUrl);
+    descEl.innerHTML = `<iframe src="https://www.linkedin.com/embed/feed/update/${encodedUrl}" height="300" width="100%" frameborder="0" allowfullscreen="" title="LinkedIn Post" style="border:none;border-radius:8px;max-width:100%;background:#fff;" loading="lazy"></iframe>
+    <a href="${escHtml(story.linkedinUrl)}" target="_blank" rel="noopener" class="story-link-card" style="margin-top:8px;"><div class="story-link-icon linkedin-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#0077b5"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></div><div><div class="story-link-text">Open on LinkedIn</div><div class="story-link-domain">${extractDomain(story.linkedinUrl)}</div></div></a>`;
   } else if (story.linkUrl) {
-    titleEl.style.display = '';
-    titleEl.innerHTML = getStoryTypeBadge(story) + '<div style="margin-top:4px">' + escHtml(story.title || 'Article') + '</div>';
     descEl.style.display = '';
-    descEl.innerHTML = '<a href="' + escHtml(story.linkUrl) + '" target="_blank" rel="noopener" class="story-link-card"><div class="story-link-icon url-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div><div class="story-link-text">Read Article</div><div class="story-link-domain">' + extractDomain(story.linkUrl) + '</div></div></a>';
     renderTweetEmbed(null);
+    // Render URL as iframe with fallback link card
+    descEl.innerHTML = `<iframe src="${escHtml(story.linkUrl)}" class="url-iframe-embed" sandbox="allow-scripts allow-same-origin" loading="lazy" title="Article"></iframe>
+    <a href="${escHtml(story.linkUrl)}" target="_blank" rel="noopener" class="story-link-card" style="margin-top:8px;"><div class="story-link-icon url-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div><div class="story-link-text">Open Article</div><div class="story-link-domain">${extractDomain(story.linkUrl)}</div></div></a>`;
   } else {
-    titleEl.style.display = '';
-    titleEl.innerHTML = getStoryTypeBadge(story) + '<div style="margin-top:4px">' + escHtml(story.title) + '</div>';
     descEl.style.display = '';
     descEl.textContent = story.desc;
     renderTweetEmbed(null);
@@ -2293,12 +2341,18 @@ function showSubmitError(msg) {
 }
 
 async function submitStory() {
-  const type = document.getElementById('submitType').value;
   const content = document.getElementById('submitContent').value.trim();
   if (!content) return;
 
-  // Basic content quality check
-  if (content.length < 10) {
+  // Auto-detect type from content
+  const type = detectLinkType(content);
+
+  // Validation
+  if (submitMode === 'link' && type === 'text') {
+    showSubmitError('That doesn\'t look like a link. Switch to "Write a Story" or paste a URL.');
+    return;
+  }
+  if (submitMode === 'write' && content.length < 10) {
     showSubmitError('Too short — add more detail.');
     return;
   }
@@ -2317,9 +2371,7 @@ async function submitStory() {
   btn.disabled = true;
 
   try {
-    const contentKey = content.toLowerCase().trim();
-
-    // 1. Duplicate check — same content already in submissions or live stories
+    // 1. Duplicate check
     const [subSnap, storySnap] = await Promise.all([
       db.collection('submissions').where('content', '==', content).limit(1).get(),
       db.collection('stories').where('description', '==', content).limit(1).get()
@@ -2346,7 +2398,7 @@ async function submitStory() {
       return;
     }
 
-    // All checks passed — submit (title will be generated by Cloud Function)
+    // Submit with auto-detected type
     const submissionData = {
       type, title: '', content,
       submittedBy: visitorId,
@@ -2363,7 +2415,6 @@ async function submitStory() {
     document.getElementById('submitSuccess').style.display = 'block';
     setTimeout(() => { document.getElementById('submitSuccess').style.display = 'none'; }, 3000);
 
-    // Show share image if they plotted a point
     if (submitPlotPoint) {
       const capturedPlot = { ...submitPlotPoint };
       showShareModal(generateShareImage(capturedPlot));
@@ -2598,110 +2649,68 @@ function resizeAdminNewCanvas() {
   setTimeout(initAdminNewTriangle, 50);
 }
 
-function isTwitterSource() {
-  const sourceType = document.getElementById('adminNewSource').value;
-  const url = document.getElementById('adminNewUrl').value.trim();
-  const isTwitterSourceType = sourceType === 'xpost';
-  const isTwitterUrl = url.includes('twitter.com') || url.includes('x.com');
-  return isTwitterSourceType || isTwitterUrl;
-}
-
-function updateTitleDescRequiredState() {
-  const isTwitter = isTwitterSource();
-  const titleLabel = document.getElementById('adminTitleRequired');
-  const descLabel = document.getElementById('adminDescRequired');
-  const titleNote = document.getElementById('adminTitleOptionalNote');
-  const descNote = document.getElementById('adminDescOptionalNote');
-
-  if (isTwitter) {
-    titleLabel.style.display = 'none';
-    descLabel.style.display = 'none';
-    titleNote.style.display = 'block';
-    descNote.style.display = 'block';
-  } else {
-    titleLabel.style.display = 'inline';
-    descLabel.style.display = 'inline';
-    titleNote.style.display = 'none';
-    descNote.style.display = 'none';
-  }
-}
+// (old isTwitterSource / updateTitleDescRequiredState removed — auto-detect handles this now)
 
 async function adminAddStory() {
-  const title = document.getElementById('adminNewTitle').value.trim();
-  const desc = document.getElementById('adminNewDesc').value.trim();
-  const url = document.getElementById('adminNewUrl').value.trim();
-  const sourceType = document.getElementById('adminNewSource').value;
+  const content = document.getElementById('adminNewContent').value.trim();
   const successEl = document.getElementById('adminAddSuccess');
   const errorEl = document.getElementById('adminAddError');
-  const isTwitter = isTwitterSource();
 
-  // Reset messages
   successEl.style.display = 'none';
   errorEl.style.display = 'none';
 
-  // Validation: title and description only required for non-Twitter sources
-  if (!isTwitter && !title) {
-    errorEl.textContent = 'Story title is required.';
+  if (!content) {
+    errorEl.textContent = 'Enter a link or write a story.';
     errorEl.style.display = 'block';
     return;
   }
 
-  if (!isTwitter && !desc) {
-    errorEl.textContent = 'Story description is required.';
-    errorEl.style.display = 'block';
-    return;
-  }
-
-  // For Twitter sources, at least the URL is required
-  if (isTwitter && !url) {
-    errorEl.textContent = 'Twitter/X URL is required.';
+  if (adminAddMode === 'link' && detectLinkType(content) === 'text') {
+    errorEl.textContent = 'That doesn\'t look like a link. Switch to "Write a Story" or paste a URL.';
     errorEl.style.display = 'block';
     return;
   }
 
   if (!adminNewPlotPoint) {
-    errorEl.textContent = 'You must set a position on the triangle before adding the story.';
+    errorEl.textContent = 'Tap the triangle to set a position first.';
     errorEl.style.display = 'block';
     return;
   }
 
   if (!firebaseAvailable) {
-    errorEl.textContent = 'Adding a story requires an internet connection.';
+    errorEl.textContent = 'Requires internet connection.';
     errorEl.style.display = 'block';
     return;
   }
 
   try {
-    const btn = document.querySelector('.admin-add-story-form button');
+    const btn = document.querySelector('.admin-add-story-form .form-btn');
     btn.disabled = true;
     btn.textContent = 'Adding...';
 
+    const detectedType = detectLinkType(content);
     const scam = Math.round(adminNewPlotPoint.scam * 100);
     const steal = Math.round(adminNewPlotPoint.steal * 100);
     const scheme = 100 - scam - steal;
 
-    // Create the story in Firestore
     await db.collection('stories').add({
-      title: title,
-      description: desc,
+      title: '',
+      description: content,
       status: 'live',
       official: {
         scam: scam,
         steal: steal,
         scheme: scheme
       },
-      source: sourceType || null,
-      url: url || null,
+      source: detectedType,
+      url: (detectedType !== 'text') ? content : null,
       submittedBy: visitorId,
       ownerPlotSet: true,
       ts: firebase.firestore.FieldValue.serverTimestamp()
     });
 
     // Clear form
-    document.getElementById('adminNewTitle').value = '';
-    document.getElementById('adminNewDesc').value = '';
-    document.getElementById('adminNewUrl').value = '';
-    document.getElementById('adminNewSource').value = '';
+    document.getElementById('adminNewContent').value = '';
     adminNewPlotPoint = null;
     document.getElementById('adminNewCoordDisplay').innerHTML = '<span class="submit-coord-hint">Tap the triangle to set position</span>';
     if (adminNewTriCtx) drawAdminNewTriangle();
@@ -2728,9 +2737,9 @@ async function adminAddStory() {
     console.error('Failed to add story:', e);
     errorEl.textContent = 'Error adding story: ' + (e.message || 'Unknown error');
     errorEl.style.display = 'block';
-    const btn = document.querySelector('.admin-add-story-form button');
-    btn.disabled = false;
-    btn.textContent = 'Add Story';
+    const btn2 = document.querySelector('.admin-add-story-form .form-btn');
+    btn2.disabled = false;
+    btn2.textContent = 'Add Story';
   }
 }
 
@@ -2986,24 +2995,83 @@ function renderAdminLiveStories() {
   }
 
   stories.forEach((story, idx) => {
-    const votes = (votesCache[story.id] || []).length;
+    const storyVotes = votesCache[story.id] || [];
+    const votes = storyVotes.length;
     const div = document.createElement('div');
-    div.className = 'admin-story-item';
-    const typeBadge = story.source ? `<span style="background:var(--surface2);border:1px solid var(--border);font-size:0.6rem;padding:1px 6px;border-radius:3px;margin-right:6px;font-family:'Space Mono',monospace;">${escHtml(story.source)}</span>` : '';
+    div.style.cssText = 'margin-bottom:12px;';
+
+    // Compute stats
+    const ownerPlot = story.ownerPlot || { scam: 0.33, steal: 0.33, scheme: 0.34 };
+    const publicAvg = votes > 0
+      ? storyVotes.reduce((a,v) => ({ scam: a.scam+v.scam, steal: a.steal+v.steal, scheme: a.scheme+v.scheme }), { scam:0, steal:0, scheme:0 })
+      : null;
+    if (publicAvg && votes > 0) { publicAvg.scam /= votes; publicAvg.steal /= votes; publicAvg.scheme /= votes; }
+
+    const typeBadge = story.source ? getStoryTypeBadge(story) : '';
     const plotStatus = story.ownerPlotSet
       ? '<span style="color:var(--green);font-size:0.65rem;">✓ plotted</span>'
       : '<span style="color:var(--orange);font-size:0.65rem;">⚠ needs plot</span>';
+
+    const detailId = 'detail-' + story.id;
+
     div.innerHTML = `
-      <div class="admin-story-info">
-        <div class="title">${typeBadge}${escHtml(adminStoryLabel(story))}</div>
-        <div class="meta">${votes} vote${votes !== 1 ? 's' : ''} · ${plotStatus}</div>
+      <div class="admin-story-item" style="cursor:pointer;" onclick="toggleAdminStoryDetail('${detailId}')">
+        <div class="admin-story-info">
+          <div class="title">${typeBadge} ${escHtml(adminStoryLabel(story))}</div>
+          <div class="meta">${votes} vote${votes !== 1 ? 's' : ''} · ${plotStatus}</div>
+        </div>
+        <div class="admin-btns" onclick="event.stopPropagation();">
+          <button class="admin-btn" onclick="toggleAdminStoryDetail('${detailId}')">View</button>
+          <button class="admin-btn delete" onclick="adminDeleteStory('${story.id}', this)">Delete</button>
+        </div>
       </div>
-      <div class="admin-btns">
-        <button class="admin-btn delete" onclick="adminDeleteStory('${story.id}', this)">Delete</button>
+      <div class="admin-story-detail" id="${detailId}">
+        <div class="detail-embed" id="embed-${story.id}"></div>
+        <div class="admin-detail-stats">
+          <div class="stat-item">Boss: <span class="stat-val" style="color:var(--pink);margin-left:4px;">S${Math.round(ownerPlot.scam*100)}% T${Math.round(ownerPlot.steal*100)}% K${Math.round(ownerPlot.scheme*100)}%</span></div>
+          ${publicAvg ? `<div class="stat-item">Public avg: <span class="stat-val" style="color:var(--gold);margin-left:4px;">S${Math.round(publicAvg.scam*100)}% T${Math.round(publicAvg.steal*100)}% K${Math.round(publicAvg.scheme*100)}%</span></div>` : ''}
+          <div class="stat-item">Votes: <span class="stat-val" style="margin-left:4px;">${votes}</span></div>
+        </div>
       </div>
     `;
     container.appendChild(div);
   });
+}
+
+function toggleAdminStoryDetail(detailId) {
+  const el = document.getElementById(detailId);
+  if (!el) return;
+  const isShowing = el.classList.contains('show');
+  // Close all other details first
+  document.querySelectorAll('.admin-story-detail.show').forEach(d => d.classList.remove('show'));
+  if (!isShowing) {
+    el.classList.add('show');
+    // Render the preview content
+    const storyId = detailId.replace('detail-', '');
+    const story = stories.find(s => s.id === storyId);
+    const embedContainer = document.getElementById('embed-' + storyId);
+    if (story && embedContainer && !embedContainer.dataset.loaded) {
+      embedContainer.dataset.loaded = 'true';
+      if (story.tweetUrl) {
+        const tweetId = extractTweetId(story.tweetUrl);
+        if (tweetId && typeof twttr !== 'undefined' && twttr.widgets) {
+          twttr.widgets.createTweet(tweetId, embedContainer, { theme: 'dark', conversation: 'none' }).then(tw => {
+            if (!tw) embedContainer.innerHTML = renderTweetFallback(story.tweetUrl);
+          });
+        } else {
+          embedContainer.innerHTML = renderTweetFallback(story.tweetUrl);
+        }
+      } else if (story.facebookUrl) {
+        renderFacebookEmbed(story.facebookUrl, embedContainer);
+      } else if (story.linkedinUrl) {
+        embedContainer.innerHTML = `<a href="${escHtml(story.linkedinUrl)}" target="_blank" rel="noopener" class="story-link-card"><div class="story-link-icon linkedin-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="#0077b5"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></div><div><div class="story-link-text">Open on LinkedIn</div><div class="story-link-domain">${extractDomain(story.linkedinUrl)}</div></div></a>`;
+      } else if (story.linkUrl) {
+        embedContainer.innerHTML = `<iframe src="${escHtml(story.linkUrl)}" class="url-iframe-embed" sandbox="allow-scripts allow-same-origin" loading="lazy"></iframe><a href="${escHtml(story.linkUrl)}" target="_blank" rel="noopener" class="story-link-card" style="margin-top:8px;"><div class="story-link-icon url-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></div><div><div class="story-link-text">Open Article</div><div class="story-link-domain">${extractDomain(story.linkUrl)}</div></div></a>`;
+      } else if (story.desc) {
+        embedContainer.innerHTML = `<div style="padding:12px;color:var(--text);font-size:0.82rem;line-height:1.6;">${escHtml(story.desc)}</div>`;
+      }
+    }
+  }
 }
 
 async function adminDeleteStory(storyId, btnEl) {
@@ -3026,26 +3094,53 @@ async function adminDeleteStory(storyId, btnEl) {
 }
 
 // ═══════════════════════════════════════════════
-// SUBMIT FORM TYPE TOGGLE
+// AUTO-DETECT LINK TYPE
 // ═══════════════════════════════════════════════
-function handleSubmitTypeChange() {
-  const type = document.getElementById('submitType').value;
-  const contentLabel = document.getElementById('submitContentLabel');
-  const contentArea = document.getElementById('submitContent');
-  if (type === 'xpost') {
-    contentLabel.textContent = 'X / Twitter Link';
-    contentArea.placeholder = 'Paste the X/Twitter post URL...';
-  } else if (type === 'linkedin') {
-    contentLabel.textContent = 'LinkedIn Post Link';
-    contentArea.placeholder = 'Paste the LinkedIn post URL...';
-  } else if (type === 'url') {
-    contentLabel.textContent = 'Article URL';
-    contentArea.placeholder = 'Paste the article URL...';
+let submitMode = 'link';
+let adminAddMode = 'link';
+
+function detectLinkType(text) {
+  if (!text) return null;
+  const t = text.trim();
+  if (/https?:\/\/(twitter\.com|x\.com)\/\w+\/status\/\d+/i.test(t)) return 'xpost';
+  if (/https?:\/\/(www\.)?linkedin\.com\//i.test(t)) return 'linkedin';
+  if (/https?:\/\/(www\.)?(facebook\.com|fb\.com|fb\.watch)\//i.test(t)) return 'facebook';
+  if (/^https?:\/\//i.test(t)) return 'url';
+  return 'text';
+}
+
+function setSubmitMode(mode) {
+  submitMode = mode;
+  const btns = document.querySelectorAll('#submitModeToggle .acct-toggle-btn');
+  btns[0].classList.toggle('active', mode === 'link');
+  btns[1].classList.toggle('active', mode === 'write');
+  const area = document.getElementById('submitContent');
+  if (mode === 'link') {
+    area.placeholder = 'Paste a link (Twitter, LinkedIn, Facebook, article...)';
+    area.style.minHeight = '48px';
   } else {
-    contentLabel.textContent = 'Story Content';
-    contentArea.placeholder = 'Tell the story...';
+    area.placeholder = 'Write or paste the story here...';
+    area.style.minHeight = '120px';
   }
 }
+
+function setAdminAddMode(mode) {
+  adminAddMode = mode;
+  const btns = document.querySelectorAll('#adminAddModeToggle .acct-toggle-btn');
+  btns[0].classList.toggle('active', mode === 'link');
+  btns[1].classList.toggle('active', mode === 'write');
+  const area = document.getElementById('adminNewContent');
+  if (mode === 'link') {
+    area.placeholder = 'Paste a link (Twitter, LinkedIn, Facebook, article...)';
+    area.style.minHeight = '48px';
+  } else {
+    area.placeholder = 'Write or paste the story here...';
+    area.style.minHeight = '120px';
+  }
+}
+
+// Keep old function name alive for any lingering references
+function handleSubmitTypeChange() { /* no-op, kept for compat */ }
 
 // ═══════════════════════════════════════════════
 // SUBMIT FORM TRIANGLE
@@ -3359,8 +3454,7 @@ init();
 // ═══════════════════════════════════════════════
 // ADD STORY: Setup Twitter/X optional fields
 // ═══════════════════════════════════════════════
-document.getElementById('adminNewSource').addEventListener('change', updateTitleDescRequiredState);
-document.getElementById('adminNewUrl').addEventListener('input', updateTitleDescRequiredState);
+// (old adminNewSource/adminNewUrl listeners removed — auto-detect handles this now)
 
 // ═══════════════════════════════════════════════
 // ADMIN APPROVE & PLOT MODAL
@@ -3555,8 +3649,8 @@ async function adminPublishStory() {
     renderAdminLiveStories();
     renderAdminOwnerPlots();
 
-    // Return to admin tab after publishing
-    switchTab('admin');
+    // Go to Plot a Ploy so admin sees the new story live
+    switchTab('plot');
   } catch(e) {
     console.error('Failed to publish story:', e);
     btn.disabled = false;
