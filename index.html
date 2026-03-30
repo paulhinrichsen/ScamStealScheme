@@ -1142,11 +1142,17 @@
     <div class="admin-section">
       <h3>Add New Story</h3>
       <div class="admin-add-story-form">
-        <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Story Title</label>
-        <input type="text" id="adminNewTitle" placeholder="e.g. SBF Fraud Case" maxlength="200" style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;font-family:'Space Mono',monospace;">
+        <div id="adminNewTitleWrapper" style="display:block;">
+          <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Story Title <span id="adminTitleRequired" style="color:var(--orange);">*</span></label>
+          <input type="text" id="adminNewTitle" placeholder="e.g. SBF Fraud Case" maxlength="200" style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;font-family:'Space Mono',monospace;">
+          <div id="adminTitleOptionalNote" style="display:none;font-size:0.7rem;color:var(--text-dim);margin-top:-8px;margin-bottom:12px;font-style:italic;">(Optional for Twitter/X links)</div>
+        </div>
 
-        <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Description / Summary</label>
-        <textarea id="adminNewDesc" placeholder="Describe the story or paste the article text..." style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;font-family:'Space Mono',monospace;min-height:100px;resize:vertical;"></textarea>
+        <div id="adminNewDescWrapper" style="display:block;">
+          <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Description / Summary <span id="adminDescRequired" style="color:var(--orange);">*</span></label>
+          <textarea id="adminNewDesc" placeholder="Describe the story or paste the article text..." style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;font-family:'Space Mono',monospace;min-height:100px;resize:vertical;"></textarea>
+          <div id="adminDescOptionalNote" style="display:none;font-size:0.7rem;color:var(--text-dim);margin-top:-8px;margin-bottom:12px;font-style:italic;">(Optional for Twitter/X links)</div>
+        </div>
 
         <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Story URL (optional)</label>
         <input type="text" id="adminNewUrl" placeholder="https://example.com/article or https://x.com/user/status/123..." style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;font-family:'Space Mono',monospace;">
@@ -2405,6 +2411,34 @@ function resizeAdminNewCanvas() {
   setTimeout(initAdminNewTriangle, 50);
 }
 
+function isTwitterSource() {
+  const sourceType = document.getElementById('adminNewSource').value;
+  const url = document.getElementById('adminNewUrl').value.trim();
+  const isTwitterSourceType = sourceType === 'xpost';
+  const isTwitterUrl = url.includes('twitter.com') || url.includes('x.com');
+  return isTwitterSourceType || isTwitterUrl;
+}
+
+function updateTitleDescRequiredState() {
+  const isTwitter = isTwitterSource();
+  const titleLabel = document.getElementById('adminTitleRequired');
+  const descLabel = document.getElementById('adminDescRequired');
+  const titleNote = document.getElementById('adminTitleOptionalNote');
+  const descNote = document.getElementById('adminDescOptionalNote');
+
+  if (isTwitter) {
+    titleLabel.style.display = 'none';
+    descLabel.style.display = 'none';
+    titleNote.style.display = 'block';
+    descNote.style.display = 'block';
+  } else {
+    titleLabel.style.display = 'inline';
+    descLabel.style.display = 'inline';
+    titleNote.style.display = 'none';
+    descNote.style.display = 'none';
+  }
+}
+
 async function adminAddStory() {
   const title = document.getElementById('adminNewTitle').value.trim();
   const desc = document.getElementById('adminNewDesc').value.trim();
@@ -2412,20 +2446,28 @@ async function adminAddStory() {
   const sourceType = document.getElementById('adminNewSource').value;
   const successEl = document.getElementById('adminAddSuccess');
   const errorEl = document.getElementById('adminAddError');
+  const isTwitter = isTwitterSource();
 
   // Reset messages
   successEl.style.display = 'none';
   errorEl.style.display = 'none';
 
-  // Validation
-  if (!title) {
+  // Validation: title and description only required for non-Twitter sources
+  if (!isTwitter && !title) {
     errorEl.textContent = 'Story title is required.';
     errorEl.style.display = 'block';
     return;
   }
 
-  if (!desc) {
+  if (!isTwitter && !desc) {
     errorEl.textContent = 'Story description is required.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  // For Twitter sources, at least the URL is required
+  if (isTwitter && !url) {
+    errorEl.textContent = 'Twitter/X URL is required.';
     errorEl.style.display = 'block';
     return;
   }
@@ -3126,6 +3168,12 @@ async function init() {
 
 window.addEventListener('resize', () => { resizeCanvas(); resizeSubmitCanvas(); });
 init();
+
+// ═══════════════════════════════════════════════
+// ADD STORY: Setup Twitter/X optional fields
+// ═══════════════════════════════════════════════
+document.getElementById('adminNewSource').addEventListener('change', updateTitleDescRequiredState);
+document.getElementById('adminNewUrl').addEventListener('input', updateTitleDescRequiredState);
 
 // ═══════════════════════════════════════════════
 // ADMIN APPROVE & PLOT MODAL
