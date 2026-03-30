@@ -1138,7 +1138,44 @@
       <div id="adminLiveStories"></div>
     </div>
 
-    <!-- ADD NEW STORY section removed — use Submit a Ploy instead -->
+    <!-- ADD NEW STORY -->
+    <div class="admin-section">
+      <h3>Add New Story</h3>
+      <div class="admin-add-story-form">
+        <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Story Title</label>
+        <input type="text" id="adminNewTitle" placeholder="e.g. SBF Fraud Case" maxlength="200" style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;font-family:'Space Mono',monospace;">
+
+        <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Description / Summary</label>
+        <textarea id="adminNewDesc" placeholder="Describe the story or paste the article text..." style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;font-family:'Space Mono',monospace;min-height:100px;resize:vertical;"></textarea>
+
+        <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Story URL (optional)</label>
+        <input type="text" id="adminNewUrl" placeholder="https://example.com/article or https://x.com/user/status/123..." style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;font-family:'Space Mono',monospace;">
+
+        <label style="font-size:0.7rem;color:var(--text-dim);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:1px;">Source Type</label>
+        <select id="adminNewSource" style="width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:0.88rem;margin-top:4px;margin-bottom:12px;outline:none;">
+          <option value="">-- None (Manual Entry) --</option>
+          <option value="xpost">X / Twitter Post</option>
+          <option value="linkedin">LinkedIn Post</option>
+          <option value="url">Article URL</option>
+          <option value="text">Text / Manual</option>
+        </select>
+
+        <div class="submit-tri-section">
+          <div class="submit-tri-label">Set Official Position</div>
+          <p class="submit-tri-desc" style="color:#ffd740;">Tap the triangle to set where this story lands on the scam/steal/scheme spectrum.</p>
+          <div id="adminNewCoordDisplay" class="submit-coord-display">
+            <span class="submit-coord-hint">Tap the triangle to set position</span>
+          </div>
+          <div class="submit-triangle-container">
+            <canvas class="submit-triangle-canvas" id="adminNewTriCanvas"></canvas>
+          </div>
+        </div>
+
+        <button class="form-btn" onclick="adminAddStory()" style="width:100%;padding:12px;margin-top:12px;">Add Story</button>
+        <div class="success-msg" id="adminAddSuccess" style="display:none;margin-top:10px;"></div>
+        <div class="error-msg" id="adminAddError" style="display:none;margin-top:10px;"></div>
+      </div>
+    </div>
 
   </div>
 
@@ -2278,6 +2315,196 @@ function adminStoryLabel(story) {
   return '[Untitled]';
 }
 
+// ═══════════════════════════════════════════════
+// ADMIN: ADD NEW STORY
+// ═══════════════════════════════════════════════
+let adminNewTriCanvas = null, adminNewTriCtx = null, adminNewTriVerts = null;
+let adminNewPlotPoint = null;
+
+function initAdminNewTriangle() {
+  adminNewTriCanvas = document.getElementById('adminNewTriCanvas');
+  if (!adminNewTriCanvas) return;
+  const rect = adminNewTriCanvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  adminNewTriCanvas.width = rect.width * dpr;
+  adminNewTriCanvas.height = rect.height * dpr;
+  adminNewTriCanvas.style.width = rect.width + 'px';
+  adminNewTriCanvas.style.height = rect.height + 'px';
+  adminNewTriCtx = adminNewTriCanvas.getContext('2d');
+  adminNewTriCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const w = rect.width, h = rect.height;
+  const pad = 50;
+  const triH = h - pad * 2;
+  const triW = Math.min(w - pad * 2, triH * 1.15);
+  const cx = w / 2;
+  adminNewTriVerts = {
+    scam:   { x: cx,            y: pad },
+    steal:  { x: cx - triW / 2, y: pad + triH },
+    scheme: { x: cx + triW / 2, y: pad + triH }
+  };
+  drawAdminNewTriangle();
+
+  // Click handler
+  adminNewTriCanvas.onclick = function(e) {
+    const rect = adminNewTriCanvas.getBoundingClientRect();
+    const px = e.clientX - rect.left, py = e.clientY - rect.top;
+    const b = adminCartToBary(px, py, adminNewTriVerts);
+    if (b.scam < -0.02 || b.steal < -0.02 || b.scheme < -0.02) return;
+    adminNewPlotPoint = b;
+    document.getElementById('adminNewCoordDisplay').innerHTML = `
+      <div class="coord-pill scam">SCAM ${Math.round(b.scam*100)}%</div>
+      <div class="coord-pill steal">STEAL ${Math.round(b.steal*100)}%</div>
+      <div class="coord-pill scheme">SCHEME ${Math.round(b.scheme*100)}%</div>
+    `;
+    drawAdminNewTriangle();
+  };
+}
+
+function drawAdminNewTriangle() {
+  if (!adminNewTriCtx || !adminNewTriVerts) return;
+  const w = adminNewTriCanvas.width / (window.devicePixelRatio || 1);
+  const h = adminNewTriCanvas.height / (window.devicePixelRatio || 1);
+  adminNewTriCtx.fillStyle = '#000000';
+  adminNewTriCtx.fillRect(0, 0, w, h);
+
+  const { scam: A, steal: B, scheme: C } = adminNewTriVerts;
+  drawTriColorEdges(adminNewTriCtx, A, B, C, 3);
+
+  const triSize = Math.hypot(C.x - B.x, C.y - B.y);
+  const labelSize = Math.max(13, Math.min(22, triSize * 0.09));
+  adminNewTriCtx.textAlign = 'center';
+  adminNewTriCtx.font = `800 ${labelSize}px "Space Mono", monospace`;
+  adminNewTriCtx.shadowColor = '#ff5c9a'; adminNewTriCtx.shadowBlur = 14;
+  adminNewTriCtx.fillStyle = '#ff5c9a'; adminNewTriCtx.fillText('SCAM', A.x, A.y - 12);
+  adminNewTriCtx.shadowBlur = 0;
+  adminNewTriCtx.shadowColor = '#ffd740'; adminNewTriCtx.shadowBlur = 14;
+  adminNewTriCtx.fillStyle = '#ffd740'; adminNewTriCtx.fillText('STEAL', B.x, B.y + labelSize + 8);
+  adminNewTriCtx.shadowBlur = 0;
+  adminNewTriCtx.shadowColor = '#00e5ff'; adminNewTriCtx.shadowBlur = 14;
+  adminNewTriCtx.fillStyle = '#00e5ff'; adminNewTriCtx.fillText('SCHEME', C.x, C.y + labelSize + 8);
+  adminNewTriCtx.shadowBlur = 0;
+
+  if (adminNewPlotPoint) {
+    const pp = adminBaryToCart(adminNewPlotPoint.scam, adminNewPlotPoint.steal, adminNewPlotPoint.scheme, adminNewTriVerts);
+    const spc = plotColor(adminNewPlotPoint), spca = plotColorAlpha(adminNewPlotPoint, 0.3), spca2 = plotColorAlpha(adminNewPlotPoint, 0.2);
+    adminNewTriCtx.beginPath(); adminNewTriCtx.arc(pp.x, pp.y, 15, 0, Math.PI * 2);
+    adminNewTriCtx.fillStyle = spca; adminNewTriCtx.fill();
+    adminNewTriCtx.beginPath(); adminNewTriCtx.arc(pp.x, pp.y, 9, 0, Math.PI * 2);
+    adminNewTriCtx.fillStyle = spc; adminNewTriCtx.fill();
+    adminNewTriCtx.beginPath(); adminNewTriCtx.arc(pp.x - 2, pp.y - 2, 3, 0, Math.PI * 2);
+    adminNewTriCtx.fillStyle = 'rgba(255,255,255,0.25)'; adminNewTriCtx.fill();
+    adminNewTriCtx.beginPath(); adminNewTriCtx.arc(pp.x, pp.y, 14, 0, Math.PI * 2);
+    adminNewTriCtx.strokeStyle = spca2; adminNewTriCtx.lineWidth = 1.5; adminNewTriCtx.stroke();
+    adminNewTriCtx.font = '600 9px "Space Mono", monospace'; adminNewTriCtx.textAlign = 'center';
+    adminNewTriCtx.fillStyle = spc; adminNewTriCtx.fillText('PLOT', pp.x, pp.y - 18);
+  }
+}
+
+function resizeAdminNewCanvas() {
+  setTimeout(initAdminNewTriangle, 50);
+}
+
+async function adminAddStory() {
+  const title = document.getElementById('adminNewTitle').value.trim();
+  const desc = document.getElementById('adminNewDesc').value.trim();
+  const url = document.getElementById('adminNewUrl').value.trim();
+  const sourceType = document.getElementById('adminNewSource').value;
+  const successEl = document.getElementById('adminAddSuccess');
+  const errorEl = document.getElementById('adminAddError');
+
+  // Reset messages
+  successEl.style.display = 'none';
+  errorEl.style.display = 'none';
+
+  // Validation
+  if (!title) {
+    errorEl.textContent = 'Story title is required.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (!desc) {
+    errorEl.textContent = 'Story description is required.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (!adminNewPlotPoint) {
+    errorEl.textContent = 'You must set a position on the triangle before adding the story.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  if (!firebaseAvailable) {
+    errorEl.textContent = 'Adding a story requires an internet connection.';
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    const btn = document.querySelector('.admin-add-story-form button');
+    btn.disabled = true;
+    btn.textContent = 'Adding...';
+
+    const scam = Math.round(adminNewPlotPoint.scam * 100);
+    const steal = Math.round(adminNewPlotPoint.steal * 100);
+    const scheme = 100 - scam - steal;
+
+    // Create the story in Firestore
+    await db.collection('stories').add({
+      title: title,
+      description: desc,
+      status: 'live',
+      official: {
+        scam: scam,
+        steal: steal,
+        scheme: scheme
+      },
+      source: sourceType || null,
+      url: url || null,
+      submittedBy: visitorId,
+      ownerPlotSet: true,
+      ts: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    // Clear form
+    document.getElementById('adminNewTitle').value = '';
+    document.getElementById('adminNewDesc').value = '';
+    document.getElementById('adminNewUrl').value = '';
+    document.getElementById('adminNewSource').value = '';
+    adminNewPlotPoint = null;
+    document.getElementById('adminNewCoordDisplay').innerHTML = '<span class="submit-coord-hint">Tap the triangle to set position</span>';
+    if (adminNewTriCtx) drawAdminNewTriangle();
+
+    // Show success message
+    successEl.textContent = 'Story added successfully!';
+    successEl.style.display = 'block';
+
+    // Reload stories to show the new one
+    stories = await loadStories();
+    await Promise.all(stories.filter(s => !votesCache[s.id]).map(async s => {
+      votesCache[s.id] = await loadVotesForStory(s.id);
+    }));
+    currentStoryIdx = findCurrentQueueIdx();
+    loadStory();
+    renderAdminLiveStories();
+
+    // Hide success message after 3 seconds
+    setTimeout(() => { successEl.style.display = 'none'; }, 3000);
+
+    btn.disabled = false;
+    btn.textContent = 'Add Story';
+  } catch(e) {
+    console.error('Failed to add story:', e);
+    errorEl.textContent = 'Error adding story: ' + (e.message || 'Unknown error');
+    errorEl.style.display = 'block';
+    const btn = document.querySelector('.admin-add-story-form button');
+    btn.disabled = false;
+    btn.textContent = 'Add Story';
+  }
+}
+
 function renderAdminOwnerPlots() {
   const select = document.getElementById('adminStorySelect');
   const plotSection = document.getElementById('adminOwnerPlotSection');
@@ -2826,6 +3053,7 @@ function renderAdminPanel() {
   renderAdminOwnerPlots();
   renderAdminPending();
   renderAdminLiveStories();
+  resizeAdminNewCanvas();
 }
 
 // ═══════════════════════════════════════════════
