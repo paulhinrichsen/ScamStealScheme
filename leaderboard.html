@@ -582,6 +582,89 @@
   .admin-msg.error { color: var(--orange); }
 
   /* ═══════════════════════════════════════════
+     ADMIN PREVIEW OVERLAY
+     ═══════════════════════════════════════════ */
+  .admin-preview-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 9999;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .admin-preview-overlay.active { display: flex; }
+  .admin-preview-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 90%;
+    max-width: 900px;
+    padding: 10px 0;
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+  }
+  .admin-preview-bar a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .admin-preview-bar a:hover { text-decoration: underline; }
+  .admin-preview-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.8rem;
+  }
+  .admin-preview-close:hover { border-color: var(--accent); color: var(--accent); }
+  .admin-preview-frame {
+    width: 90%;
+    max-width: 900px;
+    height: 75vh;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+  }
+  .admin-btn.preview { color: var(--blue); border-color: var(--blue); }
+  .admin-btn.preview:hover { background: rgba(59,139,255,0.15); }
+
+  /* ═══════════════════════════════════════════
+     RANK PROGRESS COLLAPSIBLE
+     ═══════════════════════════════════════════ */
+  .rank-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    width: 100%;
+    text-align: left;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .rank-toggle:hover { border-color: var(--accent); color: var(--text); }
+  .rank-toggle .toggle-arrow { transition: transform 0.2s; }
+  .rank-toggle.open .toggle-arrow { transform: rotate(180deg); }
+  .rank-ladder-wrap {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+  }
+  .rank-ladder-wrap.open {
+    max-height: 2000px;
+  }
+
+  /* ═══════════════════════════════════════════
      RESPONSIVE
      ═══════════════════════════════════════════ */
   @media (max-width: 700px) {
@@ -760,8 +843,13 @@
   <!-- ─── LEADERBOARD TAB ─── -->
   <div class="tab-page" id="page-leaderboard">
     <div class="rank-progress-card">
-      <h3>Your Rank Progress</h3>
-      <div class="rank-ladder" id="rankLadder"></div>
+      <button class="rank-toggle" id="rankToggleBtn" onclick="toggleRankLadder()">
+        <span>Your Rank Progress</span>
+        <span class="toggle-arrow">▼</span>
+      </button>
+      <div class="rank-ladder-wrap" id="rankLadderWrap">
+        <div class="rank-ladder" id="rankLadder"></div>
+      </div>
     </div>
 
     <div class="final-boss-banner" id="finalBossBanner">
@@ -774,7 +862,7 @@
         <div>#</div>
         <div>Name</div>
         <div>Rank</div>
-        <div>Votes</div>
+        <div>Score</div>
         <div>vs Public</div>
       </div>
       <div class="lb-empty" id="lbEmpty">No votes yet. Be the first to plot a point.</div>
@@ -848,6 +936,15 @@
 
 </div><!-- /tab-content -->
 
+<!-- ADMIN PREVIEW OVERLAY -->
+<div class="admin-preview-overlay" id="adminPreviewOverlay">
+  <div class="admin-preview-bar">
+    <span id="adminPreviewUrl"></span>
+    <button class="admin-preview-close" onclick="closeAdminPreview()">✕ Close</button>
+  </div>
+  <iframe class="admin-preview-frame" id="adminPreviewFrame" sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+</div>
+
 <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -881,7 +978,7 @@ try {
 
 // ═══════════════════════════════════════════════
 // RANKS — 8 tiers, lowest to highest
-// Score = (votes * 2) + avgOwnerMatch
+// Score = (votes * 1) + (storiesApproved * 5) + avgOwnerMatch
 // ═══════════════════════════════════════════════
 const RANKS = [
   { name: 'Runescape Scammer',     emoji: '⚔️', minScore: 0   },
@@ -896,8 +993,8 @@ const RANKS = [
   { name: 'Ponzi Supreme',         emoji: '👑', minScore: 380 },
 ];
 
-function getRank(votes, avgOwnerMatch) {
-  const score = (votes * 2) + (avgOwnerMatch || 0);
+function getRank(votes, avgOwnerMatch, storiesApproved) {
+  const score = (votes || 0) + ((storiesApproved || 0) * 5) + (avgOwnerMatch || 0);
   let rank = RANKS[0];
   for (let i = RANKS.length - 1; i >= 0; i--) {
     if (score >= RANKS[i].minScore) { rank = RANKS[i]; break; }
@@ -1064,17 +1161,17 @@ async function loadStories() {
 }
 
 async function loadUserData() {
-  if (!firebaseAvailable) return { name: 'anonymous', phraseHash: null, votes: 0, matchOwner: [], matchPublic: [] };
+  if (!firebaseAvailable) return { name: 'anonymous', phraseHash: null, votes: 0, storiesApproved: 0, matchOwner: [], matchPublic: [] };
   try {
     const snap = await db.collection('users').doc(visitorId).get();
     if (snap.exists) {
       return snap.data();
     } else {
-      return { name: 'anonymous', phraseHash: null, votes: 0, matchOwner: [], matchPublic: [] };
+      return { name: 'anonymous', phraseHash: null, votes: 0, storiesApproved: 0, matchOwner: [], matchPublic: [] };
     }
   } catch(e) {
     console.warn('Failed to load user data:', e);
-    return { name: 'anonymous', phraseHash: null, votes: 0, matchOwner: [], matchPublic: [] };
+    return { name: 'anonymous', phraseHash: null, votes: 0, storiesApproved: 0, matchOwner: [], matchPublic: [] };
   }
 }
 
@@ -1496,8 +1593,8 @@ async function renderLeaderboard() {
       const u = doc.data();
       const avgOwner = u.matchOwner && u.matchOwner.length ? Math.round(u.matchOwner.reduce((a,b)=>a+b,0)/u.matchOwner.length) : 0;
       const avgPublic = u.matchPublic && u.matchPublic.length ? Math.round(u.matchPublic.reduce((a,b)=>a+b,0)/u.matchPublic.length) : 0;
-      const rank = getRankWithAdmin(u.votes, avgOwner, u.name);
-      return { id: doc.id, name: u.name, votes: u.votes, avgOwner, avgPublic, rank };
+      const rank = getRankWithAdmin(u.votes, avgOwner, u.name, u.storiesApproved);
+      return { id: doc.id, name: u.name, votes: u.votes, storiesApproved: u.storiesApproved || 0, avgOwner, avgPublic, rank };
     })
     .sort((a,b) => b.rank.score - a.rank.score || b.votes - a.votes);
 
@@ -1530,7 +1627,7 @@ async function renderLeaderboard() {
           <div class="lb-name">${escHtml(e.name)}${you}</div>
         </div>
         <div class="lb-rank-title">${e.rank.emoji} ${e.rank.name}</div>
-        <div class="lb-votes">${e.votes}</div>
+        <div class="lb-votes" title="${e.votes} vote${e.votes!==1?'s':''} + ${e.storiesApproved} approved">${e.rank.score}</div>
         <div class="lb-match ${matchClass(e.avgPublic)}">${e.avgPublic}%</div>
       `;
       lb.appendChild(row);
@@ -1543,7 +1640,7 @@ async function renderLeaderboard() {
 
 function renderRankLadder() {
   const avgOwner = userData.matchOwner && userData.matchOwner.length ? Math.round(userData.matchOwner.reduce((a,b)=>a+b,0)/userData.matchOwner.length) : 0;
-  const currentRank = getRankWithAdmin(userData.votes, avgOwner, userData.name);
+  const currentRank = getRankWithAdmin(userData.votes, avgOwner, userData.name, userData.storiesApproved);
   const ladder = document.getElementById('rankLadder');
   ladder.innerHTML = '';
 
@@ -1557,6 +1654,13 @@ function renderRankLadder() {
   });
 }
 
+function toggleRankLadder() {
+  const btn = document.getElementById('rankToggleBtn');
+  const wrap = document.getElementById('rankLadderWrap');
+  btn.classList.toggle('open');
+  wrap.classList.toggle('open');
+}
+
 function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 
 // ═══════════════════════════════════════════════
@@ -1564,7 +1668,7 @@ function escHtml(s) { const d = document.createElement('div'); d.textContent = s
 // ═══════════════════════════════════════════════
 function updateUserRankDisplay() {
   const avgOwner = userData.matchOwner && userData.matchOwner.length ? Math.round(userData.matchOwner.reduce((a,b)=>a+b,0)/userData.matchOwner.length) : 0;
-  const rank = getRankWithAdmin(userData.votes, avgOwner, userData.name);
+  const rank = getRankWithAdmin(userData.votes, avgOwner, userData.name, userData.storiesApproved);
 
   document.getElementById('userRankEmoji').textContent = rank.emoji;
   document.getElementById('userRankName').textContent = rank.name;
@@ -1729,9 +1833,9 @@ function checkAdmin() {
 
 // Override getRank for admin
 const _originalGetRank = getRank;
-function getRankWithAdmin(votes, avgOwnerMatch, name) {
+function getRankWithAdmin(votes, avgOwnerMatch, name, storiesApproved) {
   if (name === ADMIN_NAME) return { ...ADMIN_RANK, score: 9999 };
-  return _originalGetRank(votes, avgOwnerMatch);
+  return _originalGetRank(votes, avgOwnerMatch, storiesApproved);
 }
 
 // ── Admin: triangle-based owner plot picker ──
@@ -1947,12 +2051,17 @@ async function renderAdminPending() {
       const d = doc.data();
       const div = document.createElement('div');
       div.className = 'admin-story-item';
+      const hasLink = (d.type === 'xpost' || d.type === 'url') && d.content && d.content.trim().match(/^https?:\/\//i);
+      const previewBtn = hasLink
+        ? `<button class="admin-btn preview" onclick="openAdminPreview('${escHtml(d.content.trim())}', '${escHtml(d.type)}')">Preview</button>`
+        : '';
       div.innerHTML = `
         <div class="admin-story-info">
           <div class="title">${escHtml(d.title)}</div>
           <div class="meta">${escHtml(d.type)} · ${escHtml(d.content ? d.content.substring(0, 120) : '')}${d.content && d.content.length > 120 ? '…' : ''}</div>
         </div>
         <div class="admin-btns">
+          ${previewBtn}
           <button class="admin-btn approve" onclick="adminApproveSubmission('${doc.id}', this)">Approve</button>
           <button class="admin-btn reject" onclick="adminRejectSubmission('${doc.id}', this)">Reject</button>
         </div>
@@ -1965,11 +2074,74 @@ async function renderAdminPending() {
   }
 }
 
+async function checkForDuplicateStory(sub) {
+  // Check against live stories already loaded in memory
+  const subTitle = (sub.title || '').toLowerCase().trim();
+  const subContent = (sub.content || '').toLowerCase().trim();
+
+  for (const story of stories) {
+    const storyTitle = (story.title || '').toLowerCase().trim();
+    const storyDesc = (story.desc || story.description || '').toLowerCase().trim();
+
+    // Exact title match
+    if (subTitle && storyTitle && subTitle === storyTitle) {
+      return { isDuplicate: true, matchTitle: story.title, reason: 'Same title as existing story' };
+    }
+
+    // URL match — if the submission content URL appears in any existing story description
+    if (subContent && subContent.match(/^https?:\/\//i)) {
+      if (storyDesc.includes(subContent) || subContent === storyDesc) {
+        return { isDuplicate: true, matchTitle: story.title, reason: 'Same URL as existing story' };
+      }
+    }
+
+    // Fuzzy title match — check if titles are very similar (>80% overlap)
+    if (subTitle.length > 5 && storyTitle.length > 5) {
+      const shorter = subTitle.length < storyTitle.length ? subTitle : storyTitle;
+      const longer = subTitle.length < storyTitle.length ? storyTitle : subTitle;
+      if (longer.includes(shorter) || shorter.includes(longer)) {
+        return { isDuplicate: true, matchTitle: story.title, reason: 'Very similar title to existing story' };
+      }
+    }
+  }
+
+  // Also check against other approved submissions in Firestore
+  try {
+    const approvedSnap = await db.collection('submissions').where('status', '==', 'approved').get();
+    for (const doc of approvedSnap.docs) {
+      const d = doc.data();
+      const dTitle = (d.title || '').toLowerCase().trim();
+      const dContent = (d.content || '').toLowerCase().trim();
+
+      if (subTitle && dTitle && subTitle === dTitle) {
+        return { isDuplicate: true, matchTitle: d.title, reason: 'Same title as previously approved submission' };
+      }
+      if (subContent && subContent.match(/^https?:\/\//i) && subContent === dContent) {
+        return { isDuplicate: true, matchTitle: d.title, reason: 'Same URL as previously approved submission' };
+      }
+    }
+  } catch(e) { console.warn('Duplicate check against approved submissions failed:', e); }
+
+  return { isDuplicate: false };
+}
+
 async function adminApproveSubmission(subId, btnEl) {
   if (!firebaseAvailable) return;
   try {
     const subSnap = await db.collection('submissions').doc(subId).get();
     const sub = subSnap.data();
+
+    // ── Duplicate detection ──
+    const dupeCheck = await checkForDuplicateStory(sub);
+    if (dupeCheck.isDuplicate) {
+      const proceed = confirm(
+        '⚠️ Possible duplicate detected!\n\n' +
+        'Match: "' + dupeCheck.matchTitle + '"\n' +
+        'Reason: ' + dupeCheck.reason + '\n\n' +
+        'Approve anyway?'
+      );
+      if (!proceed) return;
+    }
 
     // Create a live story from the submission
     await db.collection('stories').add({
@@ -1984,6 +2156,15 @@ async function adminApproveSubmission(subId, btnEl) {
 
     // Mark submission as approved
     await db.collection('submissions').doc(subId).update({ status: 'approved' });
+
+    // Award 5 points to the submitter by incrementing their storiesApproved count
+    if (sub.submittedBy) {
+      try {
+        await db.collection('users').doc(sub.submittedBy).set({
+          storiesApproved: firebase.firestore.FieldValue.increment(1)
+        }, { merge: true });
+      } catch(e) { console.warn('Failed to credit submitter:', e); }
+    }
 
     // Remove from DOM
     btnEl.closest('.admin-story-item').remove();
@@ -2141,6 +2322,40 @@ async function adminAddStory() {
 
   renderAdminOwnerPlots();
   renderAdminLiveStories();
+}
+
+// ── Admin: preview overlay ──
+function openAdminPreview(url, type) {
+  const overlay = document.getElementById('adminPreviewOverlay');
+  const frame = document.getElementById('adminPreviewFrame');
+  const urlSpan = document.getElementById('adminPreviewUrl');
+
+  // For X/Twitter posts, convert to embed URL
+  let embedUrl = url;
+  const tweetMatch = url.match(/(?:x\.com|twitter\.com)\/\w+\/status\/(\d+)/i);
+  if (tweetMatch) {
+    // Use platform embed page via publish.twitter.com oEmbed fallback — or use twitframe
+    embedUrl = 'https://twitframe.com/show?url=' + encodeURIComponent(url);
+  }
+
+  urlSpan.innerHTML = '<a href="' + escHtml(url) + '" target="_blank">' + escHtml(url) + '</a>';
+  frame.src = embedUrl;
+  overlay.classList.add('active');
+
+  // Close on Escape key
+  document.addEventListener('keydown', adminPreviewEscHandler);
+}
+
+function closeAdminPreview() {
+  const overlay = document.getElementById('adminPreviewOverlay');
+  const frame = document.getElementById('adminPreviewFrame');
+  overlay.classList.remove('active');
+  frame.src = '';
+  document.removeEventListener('keydown', adminPreviewEscHandler);
+}
+
+function adminPreviewEscHandler(e) {
+  if (e.key === 'Escape') closeAdminPreview();
 }
 
 // ── Admin: render full panel ──
